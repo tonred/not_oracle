@@ -1,7 +1,7 @@
 *__pycache__*
 *.py[cod]
 *$py.class
-*venv/
-*.vscode/*
-*/sandbox/*
-*/artifacts/*
+*venv
+*.vscode*
+*sandbox*
+*artifacts*
