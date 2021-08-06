@@ -5,23 +5,33 @@ pragma AbiHeader time;
 
 interface IElector {
     // ELECTION PHASE
-    function signUp() external;
-    function elect() external; // ends election
+    function signUp(
+        uint128 stakeSize,
+        uint validationStartTime,
+        uint validationDuration
+    ) external;
+    function endElection() external;
 
     // VALIDATION PHASE
-    function revealQuotationMoment(uint moment, uint256 salt) external;
-    function setValidatorsQuotation(uint128 oneUSDCost) external;
+    function setQuotation(uint256 hashedQuotation) external;
+    function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
+    function calcFinalQuotation() external;
+
+    // AFTER VALIDATION PHASE
+    function cleanUp() external;
 }
 
 interface IValidator {
     // ELECTION PHASE
-    function onStakeTransfered(???) external;
-    function signUp(IElector elector) external;
+    function onStakeTransfered(uint128 stakeSizeArg) external;
+    function signUp() external;
 
     // VALIDATION PHASE
-    function setQuotation() external;
+    function setQuotation(uint256 hashedQuotation) external;
+    function requestRevealing(uint256 hashedQuotation) external;
+    function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
     function slash() external;
 
     // AFTER VALIDATION PHASE
-    function cleanUp() external;
+    function cleanUp(address destination) external;
 }
