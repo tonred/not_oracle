@@ -15,10 +15,12 @@ interface IElector {
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) external;
     function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
+
+    // has to be called by contract itself on last revealQuotation call
     function calcFinalQuotation() external;
 
     // AFTER VALIDATION PHASE
-    function cleanUp() external;
+    function cleanUp(address destination) external;
 }
 
 interface IValidator {
