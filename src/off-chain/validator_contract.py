@@ -1,3 +1,4 @@
+from tonclient.types import SubscriptionResponseType
 from tonos_ts4 import ts4
 from typing import Tuple
 from random import randint
@@ -20,23 +21,11 @@ class ValidatorContract(BasicContract):
         await super().create(dir, name)
 
     async def address(self) -> str:
-        call_set = CallSet(
-            function_name='constructor',
-            header=FunctionHeader(pubkey=self._keypair.public),
-            input={
-                'electorArg': '0:b5e9240fc2d2f1ff8cbb1d1dee7fb7cae155e5f6320e585fcc685698994a19a5',
-                'validationStartTimeArg': '2',
-                'validationDurationArg': '3',
-            }
-        )
-        encode_params = ParamsOfEncodeMessage(
-            abi=self._abi,
-            signer=self._signer,
-            deploy_set=self._deploy_set,
-            call_set=call_set
-        )
-        encoded = await self._client.abi.encode_message(params=encode_params)
-        return encoded.address
+        return await super().address({
+            'electorArg': '0:b5e9240fc2d2f1ff8cbb1d1dee7fb7cae155e5f6320e585fcc685698994a19a5',
+            'validationStartTimeArg': '2',
+            'validationDurationArg': '3',
+        })
 
     async def deploy(self, elector_address, validation_start_time, validation_duration) -> None:
         await super().deploy(args={

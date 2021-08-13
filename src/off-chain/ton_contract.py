@@ -38,10 +38,11 @@ class BasicContract:
         await self._subscribe_account('boc')
         self._events = set()
 
-    async def address(self) -> str:
+    async def address(self, constructor_args_example) -> str:
         call_set = CallSet(
             function_name='constructor',
-            header=FunctionHeader(pubkey=self._keypair.public)
+            header=FunctionHeader(pubkey=self._keypair.public),
+            input=constructor_args_example,
         )
         encode_params = ParamsOfEncodeMessage(
             abi=self._abi,
