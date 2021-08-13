@@ -1,3 +1,4 @@
+aiohttp==3.7.4.post0
 pytest>=6.2.1
 tonos-ts4>=0.4.0
 pytest-order>=1.0.0
