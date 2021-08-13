@@ -73,7 +73,7 @@ class BasicContract:
             params=process_params
         )
 
-    async def call_method(self, method: str, args: dict={}, callback: Callable=None) -> None:
+    async def _call_method(self, method: str, args: dict={}, callback: Callable=None) -> None:
         call_set = CallSet(
             function_name=method,
             header=FunctionHeader(pubkey=self._keypair.public),

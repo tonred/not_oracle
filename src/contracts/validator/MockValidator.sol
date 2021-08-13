@@ -10,7 +10,7 @@ import "../libraries/Errors.sol";
 contract Validator is IValidator {
 
     event RevealPlz(uint256 hashedQuotation);
-    event Debug(string res);
+    event Debug(bool success);
 
     // STATUS
     bool public hasStake;
@@ -95,8 +95,7 @@ contract Validator is IValidator {
         TvmBuilder builder;
         builder.store(oneUSDCost, salt);
         uint256 hash = tvm.hash(builder.toCell());
-        string res = (hash == hashedQuotation) ? "Revealing successfull" : "Revealing NOT successfull";
-        emit Debug(res);
+        emit Debug(hash == hashedQuotation);
         IElector(elector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
     }
 

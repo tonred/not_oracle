@@ -17,7 +17,7 @@ class ValidatorContract(BasicContract):
             '__Calculator',
             {}
         )
-        self._hashed_predictions = {}
+        self._hashed_predictions: dict[str, Tuple[int, str]] = {}
         await super().create(dir, name)
 
     async def address(self) -> str:
@@ -39,16 +39,33 @@ class ValidatorContract(BasicContract):
         if event.name == 'RevealPlz':
             h = event.value['hashedQuotation']
             print(int(h, 16))
-        # print(f'  body_type = {event.body_type}')
-        # print(f'  name = {event.name}')
-        # print(f'  value = {event.value}')
-        # print(f'  header = {event.header}')
+            hash_key = str(int(h, 16))
+            if hash_key in self._hashed_predictions:
+                one_usd_cost, salt = self._hashed_predictions[hash_key]
+                await self.reveal_quotation(one_usd_cost, salt, hash_key)
+            else:
+                raise Exception('Hash not found!')
+
+    async def reveal_quotation(
+        self,
+        one_usd_cost: int,
+        salt: str,
+        hashed_quotation: str,
+    ) -> None:
+        await self._call_method(
+            method='revealQuotation',
+            args={
+                'oneUSDCost': one_usd_cost,
+                'salt': salt,
+                'hashedQuotation': hashed_quotation,
+            },
+        )
 
 
     async def set_quotation(self, one_usd_cost: int) -> None:
         salt, hash_value = self._calc_hash(one_usd_cost)
         self._hashed_predictions[hash_value] = (one_usd_cost, salt)
-        await self.call_method(
+        await self._call_method(
             method='setQuotation',
             args={'hashedQuotation': hash_value}
         )
