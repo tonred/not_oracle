@@ -12,7 +12,7 @@ from tonclient.types import ClientConfig
 from tonclient.client import TonClient
 
 
-class BasicContract:
+class BasicContract(ABC):
     async def create(
         self,
         dir: str,
@@ -157,7 +157,7 @@ class BasicContract:
             res = await event
             await self._process_event(res)
 
-    # @abstractmethod
+    @abstractmethod
     async def _process_event(self, event: DecodedMessageBody):
         print(f'  body_type = {event.body_type}')
         print(f'  name = {event.name}')
