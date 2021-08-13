@@ -4,3 +4,4 @@
 *venv
 *.vscode*
 *sandbox*
+*.pytest_cache*
