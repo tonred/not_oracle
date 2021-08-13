@@ -1,0 +1,124 @@
+{
+	"ABI version": 2,
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"electorArg","type":"address"},
+				{"name":"validationStartTimeArg","type":"uint256"},
+				{"name":"validationDurationArg","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onStakeTransfered",
+			"inputs": [
+				{"name":"stakeSizeArg","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "signUp",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setQuotation",
+			"inputs": [
+				{"name":"hashedQuotation","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "requestRevealing",
+			"inputs": [
+				{"name":"hashedQuotation","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "revealQuotation",
+			"inputs": [
+				{"name":"oneUSDCost","type":"uint128"},
+				{"name":"salt","type":"uint256"},
+				{"name":"hashedQuotation","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "slash",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "cleanUp",
+			"inputs": [
+				{"name":"destination","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "hasStake",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"hasStake","type":"bool"}
+			]
+		},
+		{
+			"name": "stakeSize",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"stakeSize","type":"uint128"}
+			]
+		},
+		{
+			"name": "elector",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"elector","type":"address"}
+			]
+		},
+		{
+			"name": "validationStartTime",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"validationStartTime","type":"uint256"}
+			]
+		},
+		{
+			"name": "validationDuration",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"validationDuration","type":"uint256"}
+			]
+		}
+	],
+	"data": [
+	],
+	"events": [
+		{
+			"name": "RevealPlz",
+			"inputs": [
+				{"name":"hashedQuotation","type":"uint256"}
+			],
+			"outputs": [
+			]
+		}
+	]
+}
