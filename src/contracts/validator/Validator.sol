@@ -49,7 +49,7 @@ contract Validator is IValidator {
         uint validationDurationArg
     ) public {
         require(tvm.pubkey() != 0, Errors.NO_PUB_KEY);
-        require(tvm.pubkey() != msg.pubkey(), Errors.WRONG_PUB_KEY);
+        require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
         require(validationStartTimeArg > now, Errors.WRONG_MOMENT);
         tvm.accept();
         elector = electorArg;
