@@ -12,18 +12,18 @@ from tonclient.types import ClientConfig
 from tonclient.client import TonClient
 
 
-client = TonClient(config=ClientConfig(), is_async=True)
-
-
 class BasicContract:
     async def create(
         self,
         dir: str,
         name: str,
         keypair: KeyPair = None,
+        client: TonClient = None,
         *args,
         **kwargs,
     ) -> None:
+        if not client:
+            client = TonClient(config=ClientConfig(), is_async=True)
         self._keypair = keypair or await client.crypto.generate_random_sign_keys()
         self._signer = Signer.Keys(keys=self._keypair)
         self._abi = Abi.from_path(

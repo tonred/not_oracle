@@ -1,13 +1,8 @@
 import asyncio
 import time
-import logging
 
-from utils import perform_prediction
+from utils import get_quotation, send_grams, client
 from validator_contract import ValidatorContract
-from ton_contract_example import send_grams
-
-
-LOGGER = logging.getLogger(__name__)
 
 
 async def main_loop():
@@ -15,6 +10,7 @@ async def main_loop():
     await v_contract.create(
         dir='./artifacts',
         name='MockValidator',
+        client=client,
     )
     await send_grams(await v_contract.address(), 10 ** 10)
     await v_contract.deploy(
@@ -26,10 +22,10 @@ async def main_loop():
     while True:
         start_time = time.time()
 
-        get_quotation_task = asyncio.create_task(perform_prediction(v_contract))
+        get_quotation_task = asyncio.create_task(get_quotation(v_contract))
         process_events_task = asyncio.create_task(v_contract.process_events())
 
-        done, _ = await asyncio.wait(
+        _, pending = await asyncio.wait(
             (
                 get_quotation_task,
                 process_events_task
@@ -37,7 +33,7 @@ async def main_loop():
             timeout=1
         )
         delta = time.time() - start_time
-        if done:
+        if not pending:
             await asyncio.sleep(1 - delta)
 
 

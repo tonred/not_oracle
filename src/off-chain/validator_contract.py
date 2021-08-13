@@ -1,3 +1,4 @@
+from tonclient.client import TonClient
 from tonclient.types import SubscriptionResponseType
 from tonos_ts4 import ts4
 from typing import Tuple
@@ -10,7 +11,8 @@ class ValidatorContract(BasicContract):
     async def create(
         self,
         dir: str,
-        name: str
+        name: str,
+        client: TonClient=None,
     ) -> None:
         ts4.init('../artifacts')
         self._hash_calculator = ts4.BaseContract(
@@ -18,7 +20,7 @@ class ValidatorContract(BasicContract):
             {}
         )
         self._hashed_predictions: dict[str, Tuple[int, str]] = {}
-        await super().create(dir, name)
+        await super().create(dir, name, client=client)
 
     async def address(self) -> str:
         return await super().address({
