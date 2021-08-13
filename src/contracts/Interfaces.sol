@@ -31,7 +31,7 @@ interface IValidator {
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) external;
     function requestRevealing(uint256 hashedQuotation) external;
-    function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
+    function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) external;
     function slash() external;
 
     // AFTER VALIDATION PHASE

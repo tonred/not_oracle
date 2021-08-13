@@ -86,7 +86,7 @@ contract Validator is IValidator {
         emit RevealPlz(hashedQuotation);
     }
 
-    function revealQuotation(uint128 oneUSDCost, uint256 salt) override external CheckMsgPubkey {
+    function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
         IElector(elector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
     }
