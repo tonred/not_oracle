@@ -28,7 +28,7 @@ async def get_quotation(contract: ValidatorContract):
             await contract.set_quotation(round((1/res) * 10**9))
 
 
-async def send_grams(address: str, value: int):
+async def send_tons_with_se_giver(address: str, value: int):
     giver_abi = Abi.from_path(
         path=os.path.join(BASE_DIR, '../artifacts/GiverV2.abi.json'))
     call_set = CallSet(
@@ -43,3 +43,6 @@ async def send_grams(address: str, value: int):
     process_params = ParamsOfProcessMessage(
         message_encode_params=encode_params, send_events=False)
     await client.processing.process_message(params=process_params)
+
+async def send_tons_with_multisig(multisig_config, value):
+    raise NotImplementedError

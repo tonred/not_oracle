@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from utils import get_quotation, send_grams, client
+from utils import get_quotation, client
 from validator_contract import ValidatorContract
 
 
@@ -9,14 +9,8 @@ async def main_loop():
     v_contract = ValidatorContract()
     await v_contract.create(
         dir='./artifacts',
-        name='MockValidator',
+        name='Validator',
         client=client,
-    )
-    await send_grams(await v_contract.address(), 10 ** 10)
-    await v_contract.deploy(
-        '0:b5e9240fc2d2f1ff8cbb1d1dee7fb7cae155e5f6320e585fcc685698994a19a5',
-        str(int(time.time()) + 10),
-        '10',
     )
 
     while True:

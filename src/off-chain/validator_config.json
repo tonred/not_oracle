@@ -1,0 +1,23 @@
+{
+    "address": "",
+    "use_se_giver": true,
+    "debug": true,
+    "multisig": {
+        "address": "",
+        "public_key": "",
+        "private_key": ""
+    },
+    "elector": {
+        "address": "",
+        "validation_start_time": 0,
+        "validation_duration": 0
+    },
+    "settings": {
+        "public_key": "",
+        "private_key": "",
+        "delay_between_quotations": 1,
+        "start_balance": 30000000000,
+        "treshold_to_top_up": 10000000000,
+        "send_for_top_up": 10000000000
+    }
+}

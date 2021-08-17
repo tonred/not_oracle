@@ -1,10 +1,9 @@
 from tonclient.client import TonClient
-from tonclient.types import SubscriptionResponseType
 from tonos_ts4 import ts4
 from typing import Tuple
 from random import randint
 
-from ton_contract import BasicContract, CallSet, FunctionHeader, ParamsOfEncodeMessage, DecodedMessageBody
+from ton_contract import BasicContract, DecodedMessageBody
 
 
 class ValidatorContract(BasicContract):
@@ -24,7 +23,7 @@ class ValidatorContract(BasicContract):
 
     async def address(self) -> str:
         return await super().address({
-            'electorArg': '0:b5e9240fc2d2f1ff8cbb1d1dee7fb7cae155e5f6320e585fcc685698994a19a5',
+            'electorArg': '0:' + '0'*64,
             'validationStartTimeArg': '2',
             'validationDurationArg': '3',
         })
@@ -37,6 +36,7 @@ class ValidatorContract(BasicContract):
         })
 
     async def _process_event(self, event: DecodedMessageBody):
+        # TODO process topUpMe events
         await super()._process_event(event)
         if event.name == 'RevealPlz':
             h = event.value['hashedQuotation']
@@ -78,5 +78,8 @@ class ValidatorContract(BasicContract):
             'calc',
             {'value': value, 'salt': salt},
         )
-        print(value, salt, res)
+        print(f'one_usd_cost: {value}\nsalt: {salt}\nhash: {res}')
         return str(salt), str(res)
+
+    async def sign_up(self):
+        await self._call_method('signUp')
