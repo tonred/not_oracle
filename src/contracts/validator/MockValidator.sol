@@ -10,6 +10,7 @@ import "../libraries/Errors.sol";
 contract Validator is IValidator {
 
     event RevealPlz(uint256 hashedQuotation);
+    event Debug(bool success);
 
     // STATUS
     bool public hasStake;
@@ -79,6 +80,9 @@ contract Validator is IValidator {
     function setQuotation(uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
         IElector(elector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
+        if ((hashedQuotation % 10) == 0) {
+            emit RevealPlz(hashedQuotation);
+        }
     }
 
     function requestRevealing(uint256 hashedQuotation) override external SenderIsElector {
@@ -88,6 +92,10 @@ contract Validator is IValidator {
 
     function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
+        TvmBuilder builder;
+        builder.store(oneUSDCost, salt);
+        uint256 hash = tvm.hash(builder.toCell());
+        emit Debug(hash == hashedQuotation);
         IElector(elector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
     }
 
