@@ -1,5 +1,5 @@
 /* solhint-disable */
-pragma ton-solidity >= 0.35.0;
+pragma ton-solidity >= 0.45.0;
 pragma AbiHeader expire;
 pragma AbiHeader time;
 pragma AbiHeader pubkey;
@@ -9,12 +9,12 @@ import "../libraries/Errors.sol";
 
 contract Validator is IValidator {
 
+    // EVENTS
     event RevealPlz(uint256 hashedQuotation);
 
     // STATUS
     bool public hasStake;
     uint128 public stakeSize;
-    mapping(uint => uint256) quotations; // timestamp => hashed quotation
 
     // AUTH DATA
     address public elector;
@@ -24,25 +24,11 @@ contract Validator is IValidator {
     uint public validationDuration;
 
     // COSTS
-    uint128 public constant SIGN_UP_COST = 1 ton;
-    uint128 public constant SET_QUOTATION_COST = 1 ton;
-    uint128 public constant REVEAL_QUOTATION_COST = 1 ton;
+    uint128 constant SIGN_UP_COST = 1 ton;
+    uint128 constant SET_QUOTATION_COST = 1 ton;
+    uint128 constant REVEAL_QUOTATION_COST = 1 ton;
 
-    modifier CheckMsgPubkey() {
-        require(msg.pubkey() == tvm.pubkey(), Errors.WRONG_PUB_KEY);
-        _;
-    }
-
-    modifier SenderIsElector() {
-        require(msg.sender == elector, Errors.WRONG_SENDER);
-        _;
-    }
-
-    modifier AfterValidation() {
-        require(now >= validationStartTime + validationDuration, Errors.WRONG_MOMENT);
-        _;
-    }
-
+    // METHODS
     constructor(
         address electorArg,
         uint validationStartTimeArg,
@@ -100,5 +86,21 @@ contract Validator is IValidator {
     function cleanUp(address destination) override external CheckMsgPubkey AfterValidation {
         tvm.accept();
         selfdestruct(destination);
+    }
+
+    // MODIFIERS
+    modifier CheckMsgPubkey() {
+        require(msg.pubkey() == tvm.pubkey(), Errors.WRONG_PUB_KEY);
+        _;
+    }
+
+    modifier SenderIsElector() {
+        require(msg.sender == elector, Errors.WRONG_SENDER);
+        _;
+    }
+
+    modifier AfterValidation() {
+        require(now >= validationStartTime + validationDuration, Errors.WRONG_MOMENT);
+        _;
     }
 }

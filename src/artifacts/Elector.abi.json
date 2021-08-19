@@ -1,0 +1,134 @@
+{
+	"ABI version": 2,
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"signUpStageBeginningArg","type":"uint256"},
+				{"name":"signUpStageDurationArg","type":"uint256"},
+				{"name":"validationStageBeginningArg","type":"uint256"},
+				{"name":"validationStageDurationArg","type":"uint256"},
+				{"name":"validatorsCodeArg","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "signUp",
+			"inputs": [
+				{"name":"stakeSize","type":"uint128"},
+				{"name":"validationStartTime","type":"uint256"},
+				{"name":"validationDuration","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "endElection",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setQuotation",
+			"inputs": [
+				{"name":"hashedQuotation","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "revealQuotation",
+			"inputs": [
+				{"name":"oneUSDCost","type":"uint128"},
+				{"name":"salt","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "calcFinalQuotation",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "cleanUp",
+			"inputs": [
+				{"name":"destination","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "status",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"status","type":"uint8"}
+			]
+		},
+		{
+			"name": "validatorsRank",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"validatorsRank","type":"map(address,uint128)"}
+			]
+		},
+		{
+			"name": "signUpStageBeginning",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"signUpStageBeginning","type":"uint256"}
+			]
+		},
+		{
+			"name": "signUpStageDuration",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"signUpStageDuration","type":"uint256"}
+			]
+		},
+		{
+			"name": "validationStageBeginning",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"validationStageBeginning","type":"uint256"}
+			]
+		},
+		{
+			"name": "validationStageDuration",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"validationStageDuration","type":"uint256"}
+			]
+		}
+	],
+	"data": [
+	],
+	"events": [
+		{
+			"name": "electionIsOverEvent",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "oneUSDCostCalculatedEvent",
+			"inputs": [
+				{"name":"oneUSDCost","type":"uint128"}
+			],
+			"outputs": [
+			]
+		}
+	]
+}
