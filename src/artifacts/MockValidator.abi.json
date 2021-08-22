@@ -1,5 +1,6 @@
 {
 	"ABI version": 2,
+	"version": "2.1",
 	"header": ["pubkey", "time", "expire"],
 	"functions": [
 		{
@@ -128,5 +129,16 @@
 			"outputs": [
 			]
 		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"hasStake","type":"bool"},
+		{"name":"stakeSize","type":"uint128"},
+		{"name":"quotations","type":"map(uint256,uint256)"},
+		{"name":"elector","type":"address"},
+		{"name":"validationStartTime","type":"uint256"},
+		{"name":"validationDuration","type":"uint256"}
 	]
 }

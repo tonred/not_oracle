@@ -12,14 +12,15 @@ class ValidatorContract(BasicContract):
         dir: str,
         name: str,
         client: TonClient=None,
+        keypair=None,
     ) -> None:
         ts4.init('../artifacts')
         self._hash_calculator = ts4.BaseContract(
             '__Calculator',
-            {}
+            {},
         )
         self._hashed_predictions: dict[str, Tuple[int, str]] = {}
-        await super().create(dir, name, client=client)
+        await super().create(dir, name, client=client, keypair=keypair)
 
     async def address(self) -> str:
         return await super().address({
@@ -36,11 +37,11 @@ class ValidatorContract(BasicContract):
         })
 
     async def _process_event(self, event: DecodedMessageBody):
-        # TODO process topUpMe events
+        # TODO implement and process topUpMePlz events
+        print(' Validator:')
         await super()._process_event(event)
         if event.name == 'RevealPlz':
             h = event.value['hashedQuotation']
-            print(int(h, 16))
             hash_key = str(int(h, 16))
             if hash_key in self._hashed_predictions:
                 one_usd_cost, salt = self._hashed_predictions[hash_key]
@@ -69,7 +70,7 @@ class ValidatorContract(BasicContract):
         self._hashed_predictions[hash_value] = (one_usd_cost, salt)
         await self._call_method(
             method='setQuotation',
-            args={'hashedQuotation': hash_value}
+            args={'hashedQuotation': hash_value},
         )
 
     def _calc_hash(self, value: int) -> Tuple[str, str]:
@@ -78,8 +79,13 @@ class ValidatorContract(BasicContract):
             'calc',
             {'value': value, 'salt': salt},
         )
-        print(f'one_usd_cost: {value}\nsalt: {salt}\nhash: {res}')
         return str(salt), str(res)
 
     async def sign_up(self):
         await self._call_method('signUp')
+
+    async def transfer_stake(self, value: int) -> None:
+        await self._call_method(
+            method='onStakeTransfered',
+            args={'stakeSizeArg': value},
+        )
