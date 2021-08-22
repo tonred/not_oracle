@@ -128,24 +128,28 @@ contract Elector is IElector {
         TvmBuilder builder;
         builder.store(random, hashedQuotation);
         random = tvm.hash(builder.toCell());
-        if (now != lastNow) {
-            lastNow = now;
-            if ((random % REVEAL_FREQUENCY_FACTOR == 0) && (status == Status.validation)) {
-                turnOnRevealingMode();
-            }
-        }
 
         if (status == Status.revealingMode) {
-            if (now - revealingStartTime > REVEALING_MODE_DURATION) {
+            if ((now - revealingStartTime) > REVEALING_MODE_DURATION) {
                 status = Status.waitingForFinalQuotationCalculation;
                 Elector(this).calcFinalQuotation();
             }
             if (quotationsToReveal.exists(msg.sender)) {
-                IValidator(msg.sender).requestRevealing{value: 0 ton}(
+                // TODO it drains balance...
+                // TODO dont call extra times
+                IValidator(msg.sender).requestRevealing(
                     quotationsToReveal[msg.sender]
                 );
             }
         }
+
+        if (now != lastNow) {
+            if (((random % REVEAL_FREQUENCY_FACTOR) == 0) && (status == Status.validation)) {
+                turnOnRevealingMode();
+            }
+        }
+
+        lastNow = now;
     }
 
     function revealQuotation(
@@ -239,6 +243,7 @@ contract Elector is IElector {
         }
 
         emit oneUSDCostCalculatedEvent(v_50);
+        status = Status.validation;
         // TODO send necessery data to NOT-Bank
     }
 
@@ -270,6 +275,7 @@ contract Elector is IElector {
 
         quotationsToReveal = tempQuotationsToReveal;
         status = Status.revealingMode;
+        revealingStartTime = now;
 
         delete revealedQuotations;
         delete lastQuotationTime;

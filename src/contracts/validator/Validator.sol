@@ -11,6 +11,7 @@ contract Validator is IValidator {
 
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
+    // TODO implement TopUpMePlz
 
     // STATUS
     bool public hasStake;

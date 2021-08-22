@@ -1,5 +1,6 @@
 {
 	"ABI version": 2,
+	"version": "2.1",
 	"header": ["pubkey", "time", "expire"],
 	"functions": [
 		{
@@ -130,5 +131,26 @@
 			"outputs": [
 			]
 		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"status","type":"uint8"},
+		{"name":"revealingStartTime","type":"uint256"},
+		{"name":"validatorsStake","type":"map(address,uint128)"},
+		{"name":"random","type":"uint256"},
+		{"name":"lastNow","type":"uint256"},
+		{"name":"validatorsRank","type":"map(address,uint128)"},
+		{"name":"lastQuotationTime","type":"map(address,uint256)"},
+		{"name":"lastQuotationHash","type":"map(address,uint256)"},
+		{"name":"badChecksInARow","type":"map(address,uint256)"},
+		{"name":"quotationsToReveal","type":"map(address,uint256)"},
+		{"name":"revealedQuotations","type":"map(address,uint128)"},
+		{"name":"signUpStageBeginning","type":"uint256"},
+		{"name":"signUpStageDuration","type":"uint256"},
+		{"name":"validationStageBeginning","type":"uint256"},
+		{"name":"validationStageDuration","type":"uint256"},
+		{"name":"validatorsCode","type":"cell"}
 	]
 }
