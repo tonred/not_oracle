@@ -25,7 +25,7 @@ It's more sophisticated. Here we have kind two separate processes.
 1. Off-chain not-validator asks the exchange for a quotation.
 2. Off-chain not-validator generate random salt, calculates `hash(quotation, salt)` and sends it to the NOT-Elector through the proxy contract.
 
-The NOT-Elector can be in two modes. `validation` and `revealing`. (In the real code there are more then two modes, but others are technical and not such important).
+At the each moment the NOT-Elector can be in the one of two modes: `validation` and `revealing`. (In the real code there are more then two modes, but others are technical and not such important).
 
 **When the NOT-Elector receives the quotation, it should do the following steps:**
 
