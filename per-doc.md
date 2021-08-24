@@ -10,7 +10,7 @@ This software consists of three parts:
 
 Here we use the same proof-of-stake mechanics as real Validation. Each NOT-Validator has to transfer DePool stake to itself and it can be slashed by NOT-Elector in case of malicious.
 
-NOT-Validation lifecycle contains of two parts:
+NOT-Validation lifecycle consists of two parts:
 * Sign-up (election) stage. Here NOT-Validators should deploy their proxy contracts, transfer stakes to it and sign-up in NOT-Elector. Afterall the NOT-Elector performs an "election" and choose validators to take part in a next stage.
 * Validation stage. Here NOT-Validators provide quotations.
 
