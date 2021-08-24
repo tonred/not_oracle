@@ -20,7 +20,7 @@ NOT-Validation lifecycle consists of two parts:
 Kind of obvious. The only controversial point is how to finalize the process of the election. Elector has `.endElection()` method. It can be called by anyone who wants. But only once and only in time.
 
 ## Validation stage
-It's more sophisticated. Here we have kind two separate processes.
+It's more sophisticated. Here we have kind of two separate processes.
 
 **NOT-Validators main loop**
 
