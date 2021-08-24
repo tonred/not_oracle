@@ -7,6 +7,7 @@ from utils import send_tons_with_se_giver,\
     send_tons_with_multisig, client
 from validator_contract import ValidatorContract
 from elector_contract import ElectorContract
+from depool_mock_contract import DePoolMockContract
 
 
 CONFIG_PATH = './off-chain/config.json'
@@ -17,6 +18,7 @@ with open(CONFIG_PATH) as f:
 
 
 async def main():
+    # prepare elector and depool
     e_contract = ElectorContract()
     await e_contract.create(
         dir='./artifacts',
@@ -28,9 +30,19 @@ async def main():
         )
     )
 
-    v_contract = ValidatorContract()
+    d_contract = DePoolMockContract()
+    await d_contract.create(
+        dir='./artifacts',
+        name='DePoolMock',
+        client=client,
+        keypair=KeyPair(
+            public=config['depool']['public_key'],
+            secret=config['depool']['private_key'],
+        )
+    )
 
     # init Validator object
+    v_contract = ValidatorContract()
     await v_contract.create(
         dir='./artifacts',
         name='Validator',
@@ -45,14 +57,20 @@ async def main():
 
     # deploy
     await v_contract.deploy(
-        config['elector']['address'],
-        str(config['elector']['validation_start_time']),
-        str(config['elector']['validation_duration']),
+        elector_address=config['elector']['address'],
+        validation_start_time=str(config['elector']['validation_start_time']),
+        validation_duration=str(config['elector']['validation_duration']),
+        depools={config['depool']['address']: True},
+        owner='0:' + '0'*64,
         # TODO top_up settings
     )
 
     # TODO transfer DePool stake to validator
-    await v_contract.transfer_stake(20000 * 10**9)
+    await d_contract.transfer_stake(
+        dest=await v_contract.address(),
+        amount=20000 * 10**9,
+    )
+    await asyncio.sleep(1)
 
     # sign-up
     await v_contract.sign_up()

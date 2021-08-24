@@ -25,7 +25,6 @@ interface IElector {
 
 interface IValidator {
     // ELECTION PHASE
-    function onStakeTransfered(uint128 stakeSizeArg) external;
     function signUp() external;
 
     // VALIDATION PHASE
@@ -36,4 +35,23 @@ interface IValidator {
 
     // AFTER VALIDATION PHASE
     function cleanUp(address destination) external;
+}
+
+interface IDePool {
+    function addOrdinaryStake(uint64 stake) external;
+    function transferStake(address dest, uint64 amount) external;
+    function withdrawAll() external;
+}
+
+interface IDepoolable {
+    function onRoundComplete(
+        uint64 roundId,
+        uint64 reward,
+        uint64 ordinaryStake,
+        uint64 vestingStake,
+        uint64 lockStake,
+        bool reinvest,
+        uint8 reason
+    ) external;
+    function onTransfer(address source, uint128 amount_) external;
 }
