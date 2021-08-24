@@ -31,7 +31,7 @@ At the each moment the NOT-Elector can be in the one of two modes: `validation` 
 
 1. Save received quotation.
 2. If in the revealing mode, ask caller to reveal it's last quotation was made before revealing mode.
-3. If in the revealing mode, check if it has to be over. In such case ask itself to `.calcFinalQuotation()`.
+3. If in the revealing mode, check if it has to be over. In such case asks itself to `.calcFinalQuotation()`.
 4. If not in the revealing mode, toss the coin and check if it has to turn on the revealing mode.
 
 **off-chain NOT-Validator** every second (time can be tuned) starts the following asynchronous tasks:
