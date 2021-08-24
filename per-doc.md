@@ -2,7 +2,7 @@
 ## Abstract
 The main goal of the project is to make reliable, trustful and decentralized system providing the stream of TON/USD quotations to the blockchain. This process called NOT-validation. It's an analog of real validation, but it makes not the chain of blocks, but the sequence of quotations.
 
-[Contest, prizes, formal task](https://defi.gov.freeton.org/proposal?proposalAddress=0%3A87c0bf7977a1465faba5250c4b8b2493dbc9bb5564f9f4d0b90017d8533cecd3)
+[Contest, formal task](https://defi.gov.freeton.org/proposal?proposalAddress=0%3A87c0bf7977a1465faba5250c4b8b2493dbc9bb5564f9f4d0b90017d8533cecd3)
 
 ## Informal description
 This software consists of three parts:
