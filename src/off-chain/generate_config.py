@@ -30,6 +30,11 @@ with open(CONFIG_PATH, 'w') as f:
                 "start_balance": 30000000000,
                 "treshold_to_top_up": 10000000000,
                 "send_for_top_up": 20000000000
+            },
+            "depool": {
+                "address": "",
+                "public_key": "",
+                "private_key": "",
             }
         }, f, indent=4
     )

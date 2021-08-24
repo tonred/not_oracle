@@ -56,7 +56,7 @@ contract Elector is IElector {
     uint128 constant MIN_STAKE_SIZE = 10 kiloton; // КОСТЫЛЬ!
 
     // OTHER CONSTANTS
-    uint constant REVEAL_FREQUENCY_FACTOR = 20;
+    uint constant REVEAL_FREQUENCY_FACTOR = 2;
     uint constant REVEALING_MODE_DURATION = 5;
     uint constant QUOTATION_LIFETIME = 3;
     uint constant NUMBER_OF_CHECKS_BEFORE_BAN = 3;

@@ -8,15 +8,9 @@
 			"inputs": [
 				{"name":"electorArg","type":"address"},
 				{"name":"validationStartTimeArg","type":"uint256"},
-				{"name":"validationDurationArg","type":"uint256"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onStakeTransfered",
-			"inputs": [
-				{"name":"stakeSizeArg","type":"uint128"}
+				{"name":"validationDurationArg","type":"uint256"},
+				{"name":"depoolsArg","type":"map(address,bool)"},
+				{"name":"ownerArg","type":"address"}
 			],
 			"outputs": [
 			]
@@ -70,11 +64,90 @@
 			]
 		},
 		{
-			"name": "hasStake",
+			"name": "onTransfer",
+			"inputs": [
+				{"name":"source","type":"address"},
+				{"name":"amount_","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onRoundComplete",
+			"inputs": [
+				{"name":"roundId","type":"uint64"},
+				{"name":"reward","type":"uint64"},
+				{"name":"ordinaryStake","type":"uint64"},
+				{"name":"vestingStake","type":"uint64"},
+				{"name":"lockStake","type":"uint64"},
+				{"name":"reinvest","type":"bool"},
+				{"name":"reason","type":"uint8"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "depools",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"hasStake","type":"bool"}
+				{"name":"depools","type":"map(address,bool)"}
+			]
+		},
+		{
+			"name": "activeDepool",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"activeDepool","type":"address"}
+			]
+		},
+		{
+			"name": "ended",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"ended","type":"bool"}
+			]
+		},
+		{
+			"name": "terminationStarted",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"terminationStarted","type":"bool"}
+			]
+		},
+		{
+			"name": "amountDeposited",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"amountDeposited","type":"uint128"}
+			]
+		},
+		{
+			"name": "amountToSendExternally",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"amountToSendExternally","type":"uint128"}
+			]
+		},
+		{
+			"name": "depooledParticipant",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"depooledParticipant","type":"address"}
+			]
+		},
+		{
+			"name": "owner",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"owner","type":"address"}
 			]
 		},
 		{
@@ -126,7 +199,14 @@
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
-		{"name":"hasStake","type":"bool"},
+		{"name":"depools","type":"map(address,bool)"},
+		{"name":"activeDepool","type":"address"},
+		{"name":"ended","type":"bool"},
+		{"name":"terminationStarted","type":"bool"},
+		{"name":"amountDeposited","type":"uint128"},
+		{"name":"amountToSendExternally","type":"uint128"},
+		{"name":"depooledParticipant","type":"address"},
+		{"name":"owner","type":"address"},
 		{"name":"stakeSize","type":"uint128"},
 		{"name":"elector","type":"address"},
 		{"name":"validationStartTime","type":"uint256"},

@@ -6,15 +6,15 @@ pragma AbiHeader pubkey;
 
 import "../Interfaces.sol";
 import "../libraries/Errors.sol";
+import "Depoolable.sol";
 
-contract Validator is IValidator {
+contract Validator is Depoolable, IValidator {
 
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
     // TODO implement TopUpMePlz
 
     // STATUS
-    bool public hasStake;
     uint128 public stakeSize;
 
     // AUTH DATA
@@ -33,7 +33,9 @@ contract Validator is IValidator {
     constructor(
         address electorArg,
         uint validationStartTimeArg,
-        uint validationDurationArg
+        uint validationDurationArg,
+        mapping (address => bool) depoolsArg,
+        address ownerArg
     ) public {
         require(tvm.pubkey() != 0, Errors.NO_PUB_KEY);
         require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
@@ -42,21 +44,16 @@ contract Validator is IValidator {
         elector = electorArg;
         validationStartTime = validationStartTimeArg;
         validationDuration = validationDurationArg;
-        hasStake = false;
+        init(depoolsArg, ownerArg);
     }
 
     // ELECTION PHASE
-    function onStakeTransfered(uint128 stakeSizeArg) override external {
-        tvm.accept();
-        hasStake = true;
-        stakeSize = stakeSizeArg;
-    }
-
     function signUp() override external CheckMsgPubkey {
-        require(hasStake, Errors.HAS_NO_STAKE);
+        require(activeDepool != address(0), Errors.HAS_NO_STAKE);
+        // require(hasStake, Errors.HAS_NO_STAKE);
         tvm.accept();
         IElector(elector).signUp{value: SIGN_UP_COST}(
-            stakeSize,
+            amountDeposited,
             validationStartTime,
             validationDuration
         );
@@ -80,6 +77,7 @@ contract Validator is IValidator {
 
     function slash() override external SenderIsElector {
         tvm.accept();
+        // TODO transfer stake
         selfdestruct(elector);
     }
 

@@ -5,3 +5,4 @@
 *.vscode*
 *sandbox*
 *.pytest_cache*
+*/off-chain/*.json

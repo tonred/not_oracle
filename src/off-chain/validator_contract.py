@@ -27,13 +27,24 @@ class ValidatorContract(BasicContract):
             'electorArg': '0:' + '0'*64,
             'validationStartTimeArg': '2',
             'validationDurationArg': '3',
+            'depoolsArg': {},
+            'ownerArg': '0:' + '0'*64,
         })
 
-    async def deploy(self, elector_address, validation_start_time, validation_duration) -> None:
+    async def deploy(
+        self,
+        elector_address,
+        validation_start_time,
+        validation_duration,
+        depools,
+        owner,
+    ) -> None:
         await super().deploy(args={
             'electorArg': elector_address,
             'validationStartTimeArg': validation_start_time,
             'validationDurationArg': validation_duration,
+            'depoolsArg': depools,
+            'ownerArg': owner,
         })
 
     async def _process_event(self, event: DecodedMessageBody):
@@ -83,9 +94,3 @@ class ValidatorContract(BasicContract):
 
     async def sign_up(self):
         await self._call_method('signUp')
-
-    async def transfer_stake(self, value: int) -> None:
-        await self._call_method(
-            method='onStakeTransfered',
-            args={'stakeSizeArg': value},
-        )

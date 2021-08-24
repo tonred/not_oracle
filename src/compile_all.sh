@@ -12,9 +12,10 @@ tondev sol compile Validator.sol
 mv Validator.tvc ../../artifacts/
 mv Validator.abi.json ../../artifacts/
 
-tondev sol compile MockValidator.sol
-mv MockValidator.tvc ../../artifacts/
-mv MockValidator.abi.json ../../artifacts/
+cd ../depool
+tondev sol compile DePoolMock.sol
+mv DePoolMock.tvc ../../artifacts/
+mv DePoolMock.abi.json ../../artifacts/
 
 cd ..
 tondev sol compile __Calculator.sol
