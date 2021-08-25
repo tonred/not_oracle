@@ -1,8 +1,9 @@
 import asyncio
 import json
+import os
 
 from utils import send_tons_with_se_giver, client
-from depool_mock_contract import DePoolMockContract
+from contracts import DePoolMockContract
 
 
 CONFIG_PATH = './off-chain/config.json'
@@ -23,7 +24,11 @@ async def main():
     )
 
     # send tons
-    await send_tons_with_se_giver(await d_contract.address(), 10 ** 11)
+    await send_tons_with_se_giver(
+        await d_contract.address(),
+        10 ** 11,
+        os.path.join(os.path.dirname(__file__), '../artifacts')
+    )
 
     # deploy
     await d_contract.deploy()

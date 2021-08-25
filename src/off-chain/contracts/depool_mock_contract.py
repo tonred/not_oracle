@@ -2,7 +2,7 @@ from tonclient.client import TonClient
 from typing import Tuple
 from random import randint
 
-from ton_contract import BasicContract, DecodedMessageBody
+from .ton_contract import BasicContract, DecodedMessageBody
 
 
 class DePoolMockContract(BasicContract):

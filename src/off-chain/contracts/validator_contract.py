@@ -3,7 +3,7 @@ from tonos_ts4 import ts4
 from typing import Tuple
 from random import randint
 
-from ton_contract import BasicContract, DecodedMessageBody
+from .ton_contract import BasicContract, DecodedMessageBody
 
 
 class ValidatorContract(BasicContract):
