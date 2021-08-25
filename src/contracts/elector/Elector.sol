@@ -92,10 +92,6 @@ contract Elector is IElector {
                 (validationDuration == validationStageDuration),
             Errors.VALIDATOR_HAS_INCORRECT_PARAMS
         );
-        require(
-            addressFitsValidatorsCode(msg.sender, msg.pubkey()),
-            Errors.VALIDATOR_HAS_INCORRECT_ADDRESS
-        );
 
         validatorsStake[msg.sender] = stakeSize;
     }
@@ -258,13 +254,6 @@ contract Elector is IElector {
     }
 
     // INLINES
-    function addressFitsValidatorsCode(
-        address _address,
-        uint256 pubkey
-    ) private inline returns (bool) {
-        return true;
-    }
-
     function turnOnRevealingMode() inline private {
         mapping(address => uint256) tempQuotationsToReveal;
         for ((address validator, uint time) : lastQuotationTime) {
