@@ -5,8 +5,7 @@ import time
 from tonclient.types import KeyPair
 
 from utils import get_quotation, client
-from validator_contract import ValidatorContract
-from elector_contract import ElectorContract
+from contracts import ValidatorContract, ElectorContract
 
 
 CONFIG_PATH = './off-chain/config.json'

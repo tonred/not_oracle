@@ -1,13 +1,12 @@
 import asyncio
 import json
+import os
 
 from tonclient.types import KeyPair
 
 from utils import send_tons_with_se_giver,\
     send_tons_with_multisig, client
-from validator_contract import ValidatorContract
-from elector_contract import ElectorContract
-from depool_mock_contract import DePoolMockContract
+from contracts import ValidatorContract, ElectorContract, DePoolMockContract
 
 
 CONFIG_PATH = './off-chain/config.json'
@@ -51,7 +50,9 @@ async def main():
 
     # send tons
     if config['use_se_giver']:
-        await send_tons_with_se_giver(await v_contract.address(), config['validator']['start_balance'])
+        await send_tons_with_se_giver(await v_contract.address(), config['validator']['start_balance'],
+            os.path.join(os.path.dirname(__file__), '../artifacts')
+    )
     else:
         await send_tons_with_multisig(config['multisig'], config['validator']['start_balance'])
 
