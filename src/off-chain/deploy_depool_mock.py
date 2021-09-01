@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 
-from utils import send_tons_with_se_giver, client
+from utils import send_tons_with_se_giver, send_tons_with_multisig, client
 from contracts import DePoolMockContract
 
 
@@ -18,15 +18,16 @@ async def main():
 
     # init object
     await d_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='DePoolMock',
         client=client,
     )
 
     # send tons
-    await send_tons_with_se_giver(
+    await send_tons_with_multisig(
+    # await send_tons_with_se_giver(
         await d_contract.address(),
-        10 ** 11,
+        10 ** 9,
         os.path.join(os.path.dirname(__file__), '../artifacts')
     )
 

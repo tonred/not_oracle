@@ -25,9 +25,9 @@ contract Validator is Depoolable, IValidator {
     uint public validationDuration;
 
     // COSTS
-    uint128 constant SIGN_UP_COST = 1 ton;
-    uint128 constant SET_QUOTATION_COST = 1 ton;
-    uint128 constant REVEAL_QUOTATION_COST = 1 ton;
+    uint128 constant SIGN_UP_COST = 0.6 ton;
+    uint128 constant SET_QUOTATION_COST = 0.6 ton;
+    uint128 constant REVEAL_QUOTATION_COST = 0.6 ton;
 
     // METHODS
     constructor(
@@ -50,7 +50,6 @@ contract Validator is Depoolable, IValidator {
     // ELECTION PHASE
     function signUp() override external CheckMsgPubkey {
         require(activeDepool != address(0), Errors.HAS_NO_STAKE);
-        // require(hasStake, Errors.HAS_NO_STAKE);
         tvm.accept();
         IElector(elector).signUp{value: SIGN_UP_COST}(
             amountDeposited,
@@ -72,12 +71,12 @@ contract Validator is Depoolable, IValidator {
 
     function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
+
         IElector(elector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
     }
 
     function slash() override external SenderIsElector {
         tvm.accept();
-        // TODO transfer stake
         selfdestruct(elector);
     }
 

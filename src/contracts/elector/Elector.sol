@@ -11,7 +11,7 @@ contract Elector is IElector {
 
     // EVENTS
     event electionIsOverEvent();
-    event oneUSDCostCalculatedEvent(uint128 oneUSDCost);
+    event oneUSDCostCalculatedEvent(uint128 oneUSDCost, uint time);
 
     // ENUMS
     enum Status {
@@ -39,6 +39,7 @@ contract Elector is IElector {
 
     // DATA (revealing mode)
     mapping(address => uint256) quotationsToReveal;
+    mapping(address => uint256) askedQuotations;
     mapping(address => uint128) revealedQuotations;
 
     // PARAMS
@@ -46,19 +47,18 @@ contract Elector is IElector {
     uint public signUpStageDuration;
     uint public validationStageBeginning;
     uint public validationStageDuration;
-    TvmCell validatorsCode;
 
     // COSTS AND BALANCES
     uint128 constant SLASH_COST = 1 ton;
     // max balance at which the commission is charged
-    uint128 constant MIN_BALANCE = 10 ton;
+    uint128 constant MIN_BALANCE = 1 ton;
     uint128 constant SET_QUOTATION_COMISSION = 0.3 ton;
     uint128 constant MIN_STAKE_SIZE = 10 kiloton; // КОСТЫЛЬ!
 
     // OTHER CONSTANTS
     uint constant REVEAL_FREQUENCY_FACTOR = 2;
-    uint constant REVEALING_MODE_DURATION = 5;
-    uint constant QUOTATION_LIFETIME = 3;
+    uint constant REVEALING_MODE_DURATION = 100;
+    uint constant QUOTATION_LIFETIME = 100;
     uint constant NUMBER_OF_CHECKS_BEFORE_BAN = 3;
 
     // METHODS
@@ -66,8 +66,7 @@ contract Elector is IElector {
         uint signUpStageBeginningArg,
         uint signUpStageDurationArg,
         uint validationStageBeginningArg,
-        uint validationStageDurationArg,
-        TvmCell validatorsCodeArg
+        uint validationStageDurationArg
     ) public {
         require(tvm.pubkey() != 0, Errors.NO_PUB_KEY);
         require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
@@ -77,7 +76,6 @@ contract Elector is IElector {
         signUpStageDuration = signUpStageDurationArg;
         validationStageBeginning = validationStageBeginningArg;
         validationStageDuration = validationStageDurationArg;
-        validatorsCode = validatorsCodeArg;
         status = Status.electionIsInProgress;
     }
 
@@ -118,6 +116,8 @@ contract Elector is IElector {
     ) override external takeComissionAndTransferRemainingValueBack {
         require(validatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
 
+        // emit Debug(status);
+
         lastQuotationHash[msg.sender] = hashedQuotation;
         lastQuotationTime[msg.sender] = now;
 
@@ -125,23 +125,20 @@ contract Elector is IElector {
         builder.store(random, hashedQuotation);
         random = tvm.hash(builder.toCell());
 
+        if ((now != lastNow) && (status == Status.validation) && ((random % REVEAL_FREQUENCY_FACTOR) == 0)) {
+            turnOnRevealingMode();
+        }
+
         if (status == Status.revealingMode) {
             if ((now - revealingStartTime) > REVEALING_MODE_DURATION) {
                 status = Status.waitingForFinalQuotationCalculation;
-                Elector(this).calcFinalQuotation();
-            }
-            if (quotationsToReveal.exists(msg.sender)) {
-                // TODO it drains balance...
-                // TODO dont call extra times
+                calcFinalQuotation();
+            } else if (quotationsToReveal.exists(msg.sender)) {
                 IValidator(msg.sender).requestRevealing(
                     quotationsToReveal[msg.sender]
                 );
-            }
-        }
-
-        if (now != lastNow) {
-            if (((random % REVEAL_FREQUENCY_FACTOR) == 0) && (status == Status.validation)) {
-                turnOnRevealingMode();
+                askedQuotations[msg.sender] = quotationsToReveal[msg.sender];
+                delete quotationsToReveal[msg.sender];
             }
         }
 
@@ -154,30 +151,29 @@ contract Elector is IElector {
     ) override external transferRemainingValueBack {
         require(validatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
         require(status == Status.revealingMode, Errors.NOT_REVEALING_MODE);
-        require(quotationsToReveal.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
+        require(askedQuotations.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
 
-        uint256 quotationHash = quotationsToReveal[msg.sender];
+        uint256 quotationHash = askedQuotations[msg.sender];
         require(
             saltedCostHash(oneUSDCost, salt) == quotationHash,
             Errors.INCORRECT_REVEAL_DATA
         );
 
         revealedQuotations[msg.sender] = oneUSDCost;
-        delete quotationsToReveal[msg.sender];
+        delete askedQuotations[msg.sender];
+        if (quotationsToReveal.empty() && askedQuotations.empty()) {
+            status = Status.waitingForFinalQuotationCalculation;
+            calcFinalQuotation();
+        }
     }
 
 
     struct Quotation {address validator; uint128 value;}
 
-    function calcFinalQuotation() override external {
-        require(msg.sender == address(this), Errors.WRONG_SENDER);
-        require(status == Status.waitingForFinalQuotationCalculation, Errors.NOT_REVEALING_MODE);
-        tvm.accept();
-
+    function calcFinalQuotation() private inline {
         Quotation[] quotations = sortedQuotations();
         uint n = quotations.length;
 
-        // TODO can be calculated with k-th statistic algo
         uint128 v_0 = quotations[0].value;
         uint128 v_25 = quotations[(n - 1) / 4].value;
         uint128 v_50 = quotations[n / 2].value;
@@ -238,7 +234,29 @@ contract Elector is IElector {
             }
         }
 
-        emit oneUSDCostCalculatedEvent(v_50);
+        for ((address validator,) : askedQuotations) {
+            uint128 r = validatorsRank[validator];
+            uint128 r_c = 1000000000;
+
+            // here constant a = 2/7
+            uint128 r_new = (5*r / 7) + (2*r_c / 7);
+            if (r_new >= 500000000) {
+                uint badChecks = badChecksInARow[validator];
+                if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
+                    IValidator(validator).slash();
+                    delete validatorsRank[validator];
+                    delete revealedQuotations[validator];
+                } else {
+                    badChecksInARow[validator] += 1;
+                    validatorsRank[validator] = r_new;
+                }
+            } else {
+                validatorsRank[validator] = r_new;
+                delete badChecksInARow[validator];
+            }
+        }
+
+        emit oneUSDCostCalculatedEvent(v_50, now - validationStageBeginning);
         status = Status.validation;
         // TODO send necessery data to NOT-Bank
     }
@@ -267,6 +285,7 @@ contract Elector is IElector {
         revealingStartTime = now;
 
         delete revealedQuotations;
+        delete askedQuotations;
         delete lastQuotationTime;
         delete lastQuotationHash;
     }

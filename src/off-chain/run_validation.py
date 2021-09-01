@@ -18,7 +18,7 @@ with open(CONFIG_PATH) as f:
 async def main_loop():
     v_contract = ValidatorContract()
     await v_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='Validator',
         client=client,
         keypair=KeyPair(
@@ -29,13 +29,13 @@ async def main_loop():
 
     e_contract = ElectorContract()
     await e_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='Elector',
         client=client,
         keypair=KeyPair(
             public=config['elector']['public_key'],
             secret=config['elector']['private_key'],
-        )
+        ),
     )
 
     await asyncio.sleep(
@@ -44,8 +44,9 @@ async def main_loop():
     )
     await e_contract.end_election()
 
-    while True:
+    while time.time() < config['elector']['validation_start_time'] + config['elector']['validation_duration'] + 1:
         start_time = time.time()
+        print('now: {}'.format(time.time() - config['elector']['validation_start_time']))
 
         get_quotation_task = asyncio.create_task(get_quotation(v_contract))
         process_validators_events_task = asyncio.create_task(v_contract.process_events())
@@ -62,6 +63,10 @@ async def main_loop():
         delta = time.time() - start_time
         if not pending:
             await asyncio.sleep(1 - delta)
+
+    await asyncio.sleep(15)
+    await e_contract.clean_up(config['multisig']['address'])
+    await v_contract.clean_up(config['multisig']['address'])
 
 
 if __name__ == '__main__':

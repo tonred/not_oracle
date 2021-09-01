@@ -18,6 +18,12 @@ contract DePoolMock is IDePool {
         IDepoolable(dest).onTransfer(address(100500), amount);
     }
 
+    function cleanUp(address destination) external {
+        tvm.accept();
+
+        selfdestruct(destination);
+    }
+
     function addOrdinaryStake(uint64 stake) override external {}
     function withdrawAll() override external {}
 }

@@ -6,3 +6,4 @@
 *sandbox*
 *.pytest_cache*
 */off-chain/*.json
+src/result.json

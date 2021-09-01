@@ -1,6 +1,4 @@
 from tonclient.client import TonClient
-from typing import Tuple
-from random import randint
 
 from .ton_contract import BasicContract, DecodedMessageBody
 
@@ -8,12 +6,13 @@ from .ton_contract import BasicContract, DecodedMessageBody
 class ElectorContract(BasicContract):
     async def create(
         self,
-        dir: str,
+        base_dir: str,
         name: str,
         client: TonClient=None,
         keypair=None,
+        subscribe_event_messages = True,
     ) -> None:
-        await super().create(dir, name, client=client, keypair=keypair)
+        await super().create(base_dir, name, client=client, keypair=keypair, subscribe_event_messages=subscribe_event_messages)
 
     async def address(self) -> str:
         return await super().address({
@@ -29,15 +28,13 @@ class ElectorContract(BasicContract):
         signup_stage_beginning: int,
         signup_stage_duration: int,
         validation_stage_beginning: int,
-        validation_stage_duration: int,
-        validators_code: str,
+        validation_stage_duration: int
     ) -> None:
         await super().deploy(args={
             'signUpStageBeginningArg': str(signup_stage_beginning),
             'signUpStageDurationArg': str(signup_stage_duration),
             'validationStageBeginningArg': str(validation_stage_beginning),
             'validationStageDurationArg': str(validation_stage_duration),
-            'validatorsCodeArg': validators_code,
         })
 
     async def _process_event(self, event: DecodedMessageBody):
@@ -46,3 +43,6 @@ class ElectorContract(BasicContract):
 
     async def end_election(self) -> None:
         await self._call_method('endElection')
+
+    async def clean_up(self, destination):
+        await self._call_method('cleanUp', {'destination': destination})
