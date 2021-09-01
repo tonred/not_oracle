@@ -7,7 +7,7 @@ from tonclient.types import Abi, CallSet, KeyPair, NetworkConfig,\
 from tonclient.types import ClientConfig
 from tonclient.client import TonClient
 
-from contracts import ValidatorContract, MultisigContract
+from contracts import NotValidatorContract, MultisigContract
 
 
 # BASE_DIR = os.path.dirname(__file__)
@@ -27,7 +27,7 @@ client = TonClient(
 )
 
 
-async def get_quotation(contract: ValidatorContract):
+async def get_quotation(contract: NotValidatorContract):
     # TODO implement session-pool
     async with aiohttp.ClientSession() as session:
         async with session.post(

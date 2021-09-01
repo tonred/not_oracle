@@ -7,7 +7,7 @@ import time
 from tonclient.types import KeyPair
 
 from utils import client, send_tons_with_multisig
-from contracts import ValidatorContract, DePoolMockContract
+from contracts import NotValidatorContract, DePoolMockContract
 
 
 index = int(sys.argv[1])
@@ -18,7 +18,7 @@ with open(CONFIG_PATH) as f:
     config = json.load(f)
 
 with open(TEST_PATH) as f:
-    test = json.load(f)['validators'][index]
+    test = json.load(f)['not_validators'][index]
 
 
 async def main_loop():
@@ -34,29 +34,29 @@ async def main_loop():
         )
     )
 
-    # init Validator object
-    v_contract = ValidatorContract()
+    # init NotValidator object
+    v_contract = NotValidatorContract()
     await v_contract.create(
         base_dir='./artifacts',
-        name='Validator',
+        name='NotValidator',
         client=client,
     )
 
     # send tons
-    await send_tons_with_multisig(await v_contract.address(), config['validator']['start_balance'],
+    await send_tons_with_multisig(await v_contract.address(), config['not_validator']['start_balance'],
                                   os.path.join(os.path.dirname(__file__), '../artifacts'))
 
     # deploy
     await v_contract.deploy(
-        elector_address=config['elector']['address'],
-        validation_start_time=str(config['elector']['validation_start_time']),
-        validation_duration=str(config['elector']['validation_duration']),
+        not_elector_address=config['not_elector']['address'],
+        validation_start_time=str(config['not_elector']['validation_start_time']),
+        validation_duration=str(config['not_elector']['validation_duration']),
         depools={config['depool']['address']: True},
         owner='0:' + '0'*64,
         # TODO top_up settings
     )
 
-    # transfer DePool stake to validator
+    # transfer DePool stake to not_validator
     await d_contract.transfer_stake(
         dest=await v_contract.address(),
         amount=20000 * 10**9,
@@ -65,10 +65,10 @@ async def main_loop():
 
     # sign-up
     await v_contract.sign_up()
-    assert time.time() < config['elector']['sign_up_start_time'] + \
-        config['elector']['sign_up_duration']
+    assert time.time() < config['not_elector']['sign_up_start_time'] + \
+        config['not_elector']['sign_up_duration']
 
-    validation_start_time = config['elector']['validation_start_time']
+    validation_start_time = config['not_elector']['validation_start_time']
     for _, quotation in enumerate(test['quotations']):
         print(quotation)
         now = int(time.time())
@@ -81,8 +81,8 @@ async def main_loop():
         )
         await v_contract.process_events()
 
-    if time.time() < config['elector']['validation_start_time'] + config['elector']['validation_duration']:
-        await asyncio.sleep((config['elector']['validation_start_time'] + config['elector']['validation_duration']) - time.time() + 1)
+    if time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']:
+        await asyncio.sleep((config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']) - time.time() + 1)
 
 
 if __name__ == '__main__':

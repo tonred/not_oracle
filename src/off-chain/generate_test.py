@@ -7,12 +7,12 @@ with open(CONFIG_PATH) as f:
     config = json.load(f)
 
 test = {
-    'validators': [{
+    'not_validators': [{
         'quotations': [{
             'set_quotation_time': i,
             'one_USD_cost': i,
             'reveal': True
-        } for i in range(config['elector']['validation_duration'])],
+        } for i in range(config['not_elector']['validation_duration'])],
         'malicious': False
     } for i in range(10)]
 }

@@ -7,7 +7,7 @@ pragma AbiHeader pubkey;
 import "../Interfaces.sol";
 import "../libraries/Errors.sol";
 
-contract Elector is IElector {
+contract NotElector is INotElector {
 
     // EVENTS
     event electionIsOverEvent();
@@ -27,12 +27,12 @@ contract Elector is IElector {
     uint revealingStartTime;
 
     // DATA (election)
-    mapping(address => uint128) validatorsStake;
+    mapping(address => uint128) notValidatorsStake;
 
     // DATA (regular validation)
     uint256 random;
     uint lastNow;
-    mapping(address => uint128) public validatorsRank;
+    mapping(address => uint128) public notValidatorsRank;
     mapping(address => uint) lastQuotationTime;
     mapping(address => uint256) lastQuotationHash;
     mapping(address => uint) badChecksInARow;
@@ -91,7 +91,7 @@ contract Elector is IElector {
             Errors.VALIDATOR_HAS_INCORRECT_PARAMS
         );
 
-        validatorsStake[msg.sender] = stakeSize;
+        notValidatorsStake[msg.sender] = stakeSize;
     }
 
     function endElection() override external {
@@ -99,10 +99,10 @@ contract Elector is IElector {
         require(status == Status.electionIsInProgress);
         tvm.accept();
 
-        for ((address validator, uint stakeSize) : validatorsStake) {
+        for ((address notValidator, uint stakeSize) : notValidatorsStake) {
             // TODO algorithm should be different!!!!
             if (stakeSize >= MIN_STAKE_SIZE) {
-                validatorsRank[validator] = 0;
+                notValidatorsRank[notValidator] = 0;
             }
         }
 
@@ -114,7 +114,7 @@ contract Elector is IElector {
     function setQuotation(
         uint256 hashedQuotation
     ) override external takeComissionAndTransferRemainingValueBack {
-        require(validatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
+        require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
 
         // emit Debug(status);
 
@@ -134,7 +134,7 @@ contract Elector is IElector {
                 status = Status.waitingForFinalQuotationCalculation;
                 calcFinalQuotation();
             } else if (quotationsToReveal.exists(msg.sender)) {
-                IValidator(msg.sender).requestRevealing(
+                INotValidator(msg.sender).requestRevealing(
                     quotationsToReveal[msg.sender]
                 );
                 askedQuotations[msg.sender] = quotationsToReveal[msg.sender];
@@ -149,7 +149,7 @@ contract Elector is IElector {
         uint128 oneUSDCost,
         uint256 salt
     ) override external transferRemainingValueBack {
-        require(validatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
+        require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
         require(status == Status.revealingMode, Errors.NOT_REVEALING_MODE);
         require(askedQuotations.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
 
@@ -168,7 +168,7 @@ contract Elector is IElector {
     }
 
 
-    struct Quotation {address validator; uint128 value;}
+    struct Quotation {address notValidator; uint128 value;}
 
     function calcFinalQuotation() private inline {
         Quotation[] quotations = sortedQuotations();
@@ -191,68 +191,68 @@ contract Elector is IElector {
                 P = 1000000000;
             }
 
-            uint128 r = validatorsRank[quotation.validator];
+            uint128 r = notValidatorsRank[quotation.notValidator];
             uint128 r_c = 1000000000 - P;
 
             // here constant a = 2/7
             uint128 r_new = (5*r / 7) + (2*r_c / 7);
             if (r_new >= 500000000) {
-                uint badChecks = badChecksInARow[quotation.validator];
+                uint badChecks = badChecksInARow[quotation.notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
-                    IValidator(quotation.validator).slash();
-                    delete validatorsRank[quotation.validator];
-                    delete revealedQuotations[quotation.validator];
+                    INotValidator(quotation.notValidator).slash();
+                    delete notValidatorsRank[quotation.notValidator];
+                    delete revealedQuotations[quotation.notValidator];
                 } else {
-                    badChecksInARow[quotation.validator] += 1;
-                    validatorsRank[quotation.validator] = r_new;
+                    badChecksInARow[quotation.notValidator] += 1;
+                    notValidatorsRank[quotation.notValidator] = r_new;
                 }
             } else {
-                validatorsRank[quotation.validator] = r_new;
-                delete badChecksInARow[quotation.validator];
+                notValidatorsRank[quotation.notValidator] = r_new;
+                delete badChecksInARow[quotation.notValidator];
             }
         }
 
-        for ((address validator,) : quotationsToReveal) {
-            uint128 r = validatorsRank[validator];
+        for ((address notValidator,) : quotationsToReveal) {
+            uint128 r = notValidatorsRank[notValidator];
             uint128 r_c = 1000000000;
 
             // here constant a = 2/7
             uint128 r_new = (5*r / 7) + (2*r_c / 7);
             if (r_new >= 500000000) {
-                uint badChecks = badChecksInARow[validator];
+                uint badChecks = badChecksInARow[notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
-                    IValidator(validator).slash();
-                    delete validatorsRank[validator];
-                    delete revealedQuotations[validator];
+                    INotValidator(notValidator).slash();
+                    delete notValidatorsRank[notValidator];
+                    delete revealedQuotations[notValidator];
                 } else {
-                    badChecksInARow[validator] += 1;
-                    validatorsRank[validator] = r_new;
+                    badChecksInARow[notValidator] += 1;
+                    notValidatorsRank[notValidator] = r_new;
                 }
             } else {
-                validatorsRank[validator] = r_new;
-                delete badChecksInARow[validator];
+                notValidatorsRank[notValidator] = r_new;
+                delete badChecksInARow[notValidator];
             }
         }
 
-        for ((address validator,) : askedQuotations) {
-            uint128 r = validatorsRank[validator];
+        for ((address notValidator,) : askedQuotations) {
+            uint128 r = notValidatorsRank[notValidator];
             uint128 r_c = 1000000000;
 
             // here constant a = 2/7
             uint128 r_new = (5*r / 7) + (2*r_c / 7);
             if (r_new >= 500000000) {
-                uint badChecks = badChecksInARow[validator];
+                uint badChecks = badChecksInARow[notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
-                    IValidator(validator).slash();
-                    delete validatorsRank[validator];
-                    delete revealedQuotations[validator];
+                    INotValidator(notValidator).slash();
+                    delete notValidatorsRank[notValidator];
+                    delete revealedQuotations[notValidator];
                 } else {
-                    badChecksInARow[validator] += 1;
-                    validatorsRank[validator] = r_new;
+                    badChecksInARow[notValidator] += 1;
+                    notValidatorsRank[notValidator] = r_new;
                 }
             } else {
-                validatorsRank[validator] = r_new;
-                delete badChecksInARow[validator];
+                notValidatorsRank[notValidator] = r_new;
+                delete badChecksInARow[notValidator];
             }
         }
 
@@ -274,9 +274,9 @@ contract Elector is IElector {
     // INLINES
     function turnOnRevealingMode() inline private {
         mapping(address => uint256) tempQuotationsToReveal;
-        for ((address validator, uint time) : lastQuotationTime) {
+        for ((address notValidator, uint time) : lastQuotationTime) {
             if (now - time <= QUOTATION_LIFETIME) {
-                tempQuotationsToReveal[validator] = lastQuotationHash[validator];
+                tempQuotationsToReveal[notValidator] = lastQuotationHash[notValidator];
             }
         }
 
@@ -301,8 +301,8 @@ contract Elector is IElector {
     }
 
     function sortedQuotations() inline private returns (Quotation[] res) {
-        for ((address validator, uint128 value) : revealedQuotations) {
-            res.push(Quotation(validator, value));
+        for ((address notValidator, uint128 value) : revealedQuotations) {
+            res.push(Quotation(notValidator, value));
         }
 
         uint n = res.length;

@@ -8,7 +8,7 @@ import "../Interfaces.sol";
 import "../libraries/Errors.sol";
 import "Depoolable.sol";
 
-contract Validator is Depoolable, IValidator {
+contract NotValidator is Depoolable, INotValidator {
 
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
@@ -18,7 +18,7 @@ contract Validator is Depoolable, IValidator {
     uint128 public stakeSize;
 
     // AUTH DATA
-    address public elector;
+    address public notElector;
 
     // ELECTION CYCLE PARAMS
     uint public validationStartTime;
@@ -31,7 +31,7 @@ contract Validator is Depoolable, IValidator {
 
     // METHODS
     constructor(
-        address electorArg,
+        address notElectorArg,
         uint validationStartTimeArg,
         uint validationDurationArg,
         mapping (address => bool) depoolsArg,
@@ -41,7 +41,7 @@ contract Validator is Depoolable, IValidator {
         require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
         require(validationStartTimeArg > now, Errors.WRONG_MOMENT);
         tvm.accept();
-        elector = electorArg;
+        notElector = notElectorArg;
         validationStartTime = validationStartTimeArg;
         validationDuration = validationDurationArg;
         init(depoolsArg, ownerArg);
@@ -51,7 +51,7 @@ contract Validator is Depoolable, IValidator {
     function signUp() override external CheckMsgPubkey {
         require(activeDepool != address(0), Errors.HAS_NO_STAKE);
         tvm.accept();
-        IElector(elector).signUp{value: SIGN_UP_COST}(
+        INotElector(notElector).signUp{value: SIGN_UP_COST}(
             amountDeposited,
             validationStartTime,
             validationDuration
@@ -61,10 +61,10 @@ contract Validator is Depoolable, IValidator {
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
-        IElector(elector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
+        INotElector(notElector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
     }
 
-    function requestRevealing(uint256 hashedQuotation) override external SenderIsElector {
+    function requestRevealing(uint256 hashedQuotation) override external SenderIsNotElector {
         tvm.accept();
         emit RevealPlz(hashedQuotation);
     }
@@ -72,12 +72,12 @@ contract Validator is Depoolable, IValidator {
     function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
 
-        IElector(elector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
+        INotElector(notElector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
     }
 
-    function slash() override external SenderIsElector {
+    function slash() override external SenderIsNotElector {
         tvm.accept();
-        selfdestruct(elector);
+        selfdestruct(notElector);
     }
 
     // AFTER VALIDATION PHASE
@@ -92,8 +92,8 @@ contract Validator is Depoolable, IValidator {
         _;
     }
 
-    modifier SenderIsElector() {
-        require(msg.sender == elector, Errors.WRONG_SENDER);
+    modifier SenderIsNotElector() {
+        require(msg.sender == notElector, Errors.WRONG_SENDER);
         _;
     }
 

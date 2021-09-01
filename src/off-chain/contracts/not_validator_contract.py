@@ -6,7 +6,7 @@ from tonclient.client import TonClient
 from .ton_contract import BasicContract, DecodedMessageBody
 
 
-class ValidatorContract(BasicContract):
+class NotValidatorContract(BasicContract):
     def __init__(self) -> None:
         super().__init__()
         ts4.init('../artifacts')
@@ -28,7 +28,7 @@ class ValidatorContract(BasicContract):
 
     async def address(self) -> str:
         return await super().address({
-            'electorArg': '0:' + '0'*64,
+            'notElectorArg': '0:' + '0'*64,
             'validationStartTimeArg': '2',
             'validationDurationArg': '3',
             'depoolsArg': {},
@@ -37,14 +37,14 @@ class ValidatorContract(BasicContract):
 
     async def deploy(
         self,
-        elector_address,
+        not_elector_address,
         validation_start_time,
         validation_duration,
         depools,
         owner,
     ) -> None:
         await super().deploy(args={
-            'electorArg': elector_address,
+            'notElectorArg': not_elector_address,
             'validationStartTimeArg': validation_start_time,
             'validationDurationArg': validation_duration,
             'depoolsArg': depools,
@@ -53,7 +53,7 @@ class ValidatorContract(BasicContract):
 
     async def _process_event(self, event: DecodedMessageBody):
         # TODO implement and process topUpMePlz events
-        print(' Validator:')
+        print(' NotValidator:')
         await super()._process_event(event)
         if event.name == 'RevealPlz':
             hashed = event.value['hashedQuotation']
