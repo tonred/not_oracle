@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import base64
 import os
+import time
 
 from typing import Callable, Any
 
@@ -9,17 +10,30 @@ from tonclient.types import Abi, DeploySet, CallSet, KeyPair,\
     ParamsOfEncodeMessage, ParamsOfProcessMessage, SubscriptionResponseType,\
     ResultOfSubscription, ResultOfSubscribeCollection, DecodedMessageBody
 from tonclient.types import ClientConfig
-from tonclient.client import TonClient
+from tonclient.client import TonClient, TonException
 
 
 class BasicContract(ABC):
+    def __init__(self) -> None:
+        self._keypair = None
+        self._signer = None
+        self._abi = None
+        self._tvc = None
+
+        self._deploy_set = None
+        self._subscriptions: dict[str, ResultOfSubscribeCollection] = {}
+        self._client = None
+        self._events = set()
+        self._re_subscribe = False
+
     async def create(
         self,
-        dir: str,
+        base_dir: str,
         name: str,
+        *args,
         keypair: KeyPair = None,
         client: TonClient = None,
-        *args,
+        subscribe_event_messages = True,
         **kwargs,
     ) -> None:
         if not client:
@@ -27,16 +41,15 @@ class BasicContract(ABC):
         self._keypair = keypair or await client.crypto.generate_random_sign_keys()
         self._signer = Signer.Keys(keys=self._keypair)
         self._abi = Abi.from_path(
-            path=os.path.join(dir, f'{name}.abi.json')
+            path=os.path.join(base_dir, f'{name}.abi.json')
         )
-        with open(os.path.join(dir, f'{name}.tvc'), 'rb') as fp:
-            self._tvc = base64.b64encode(fp.read()).decode()
+        with open(os.path.join(base_dir, f'{name}.tvc'), 'rb') as file:
+            self._tvc = base64.b64encode(file.read()).decode()
 
         self._deploy_set = DeploySet(tvc=self._tvc)
-        self._subscriptions: dict[str, ResultOfSubscribeCollection] = {}
         self._client = client
-        await self._subscribe_account('boc')
-        self._events = set()
+        if subscribe_event_messages:
+            await self._subscribe_account('boc')
 
     async def address(self, constructor_args_example) -> str:
         call_set = CallSet(
@@ -73,10 +86,13 @@ class BasicContract(ABC):
             params=process_params
         )
 
-    async def _call_method(self, method: str, args: dict={}, callback: Callable=None) -> None:
+    async def _call_method(self, method: str, args: dict={}, callback: Callable=None) -> Any:
         call_set = CallSet(
             function_name=method,
-            header=FunctionHeader(pubkey=self._keypair.public),
+            header=FunctionHeader(
+                pubkey=self._keypair.public,
+                # expire=int(time.time()) + 40,
+            ),
             input=args or None,
         )
         encode_params = ParamsOfEncodeMessage(
@@ -89,31 +105,37 @@ class BasicContract(ABC):
             message_encode_params=encode_params,
             send_events=False,
         )
-        return (await self._client.processing.process_message(
-            params=process_params,
-            callback=callback,
-        )).decoded.output
+        try:
+            return (await self._client.processing.process_message(
+                params=process_params,
+                callback=callback,
+            )).decoded.output
+        except TonException:
+            return (await self._client.processing.process_message(
+                params=process_params,
+                callback=callback,
+            )).decoded.output
 
-    async def get(name: str):
+    async def get(self, name: str):
         raise NotImplementedError
 
     async def _subscribe(
         self,
         collection: str,
-        filter: Any,
+        _filter: Any,
         fields: str,
         listener: Callable
     ) -> None:
-        prevSubscription = self._subscriptions.get(collection)
-        if prevSubscription:
+        prev_subscription = self._subscriptions.get(collection)
+        if prev_subscription:
             del self._subscriptions[collection]
-            await self._client.net.unsubscribe(prevSubscription)
+            await self._client.net.unsubscribe(prev_subscription)
 
         subscription = await self._client.net.subscribe_collection(
             params=ParamsOfSubscribeCollection(
                 collection,
                 result=fields,
-                filter=filter
+                filter=_filter
             ),
             callback=listener,
         )
@@ -125,7 +147,7 @@ class BasicContract(ABC):
     ) -> None:
         await self._subscribe(
             collection='messages',
-            filter={
+            _filter={
                 'src': {'eq': await self.address()},
                 'msg_type': {'eq': 2},
             },
@@ -144,6 +166,8 @@ class BasicContract(ABC):
             self._events.add(result_coro)
         if response_type == SubscriptionResponseType.ERROR:
             print(f'oops! {response_data}')
+            self._re_subscribe = True
+
 
     async def _decode_message(self, message: str):
         return await self._client.abi.decode_message(ParamsOfDecodeMessage(
@@ -152,6 +176,9 @@ class BasicContract(ABC):
         ))
 
     async def process_events(self):
+        if self._re_subscribe:
+            self._re_subscribe = False
+            await self._subscribe_account('boc')
         while self._events:
             event = self._events.pop()
             res = await event

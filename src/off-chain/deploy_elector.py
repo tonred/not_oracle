@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 
-from utils import send_tons_with_se_giver, client
+from utils import send_tons_with_se_giver, send_tons_with_multisig, client
 from contracts import ElectorContract
 
 
@@ -18,14 +18,15 @@ async def main():
 
     # init Elector object
     await e_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='Elector',
         client=client,
+        # client=client_dev,
         # TODO keys
     )
 
     # send tons
-    await send_tons_with_se_giver(await e_contract.address(), 10 ** 11,
+    await send_tons_with_multisig(await e_contract.address(), 15 * 10 ** 9,
         os.path.join(os.path.dirname(__file__), '../artifacts')
     )
 
@@ -35,7 +36,6 @@ async def main():
         config['elector']['sign_up_duration'],
         config['elector']['validation_start_time'],
         config['elector']['validation_duration'],
-        config['elector']['validators_code'],
     )
 
     # update config

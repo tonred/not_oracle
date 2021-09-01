@@ -20,6 +20,14 @@
 			]
 		},
 		{
+			"name": "cleanUp",
+			"inputs": [
+				{"name":"destination","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "addOrdinaryStake",
 			"inputs": [
 				{"name":"stake","type":"uint64"}

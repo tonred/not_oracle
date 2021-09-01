@@ -20,18 +20,19 @@ async def main():
     # prepare elector and depool
     e_contract = ElectorContract()
     await e_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='Elector',
         client=client,
         keypair=KeyPair(
             public=config['elector']['public_key'],
             secret=config['elector']['private_key'],
-        )
+        ),
+        subscribe_event_messages=False,
     )
 
     d_contract = DePoolMockContract()
     await d_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='DePoolMock',
         client=client,
         keypair=KeyPair(
@@ -43,18 +44,19 @@ async def main():
     # init Validator object
     v_contract = ValidatorContract()
     await v_contract.create(
-        dir='./artifacts',
+        base_dir='./artifacts',
         name='Validator',
         client=client,
+        subscribe_event_messages=False,
     )
 
     # send tons
-    if config['use_se_giver']:
-        await send_tons_with_se_giver(await v_contract.address(), config['validator']['start_balance'],
-            os.path.join(os.path.dirname(__file__), '../artifacts')
+    await send_tons_with_multisig(
+    # await send_tons_with_se_giver(
+        await v_contract.address(),
+        config['validator']['start_balance'],
+        os.path.join(os.path.dirname(__file__), '../artifacts')
     )
-    else:
-        await send_tons_with_multisig(config['multisig'], config['validator']['start_balance'])
 
     # deploy
     await v_contract.deploy(
@@ -75,9 +77,7 @@ async def main():
 
     # sign-up
     await v_contract.sign_up()
-
-    await v_contract.process_events()
-    await e_contract.process_events()
+    await d_contract.clean_up(config['multisig']['address'])
 
     # update config
     config['validator']['address'] = await v_contract.address()

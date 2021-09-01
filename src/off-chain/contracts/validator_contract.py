@@ -1,26 +1,30 @@
-from tonclient.client import TonClient
-from tonos_ts4 import ts4
 from typing import Tuple
 from random import randint
+from tonos_ts4 import ts4
 
+from tonclient.client import TonClient
 from .ton_contract import BasicContract, DecodedMessageBody
 
 
 class ValidatorContract(BasicContract):
-    async def create(
-        self,
-        dir: str,
-        name: str,
-        client: TonClient=None,
-        keypair=None,
-    ) -> None:
+    def __init__(self) -> None:
+        super().__init__()
         ts4.init('../artifacts')
         self._hash_calculator = ts4.BaseContract(
             '__Calculator',
             {},
         )
         self._hashed_predictions: dict[str, Tuple[int, str]] = {}
-        await super().create(dir, name, client=client, keypair=keypair)
+
+    async def create(
+        self,
+        base_dir: str,
+        name: str,
+        client: TonClient=None,
+        keypair=None,
+        subscribe_event_messages=True,
+    ) -> None:
+        await super().create(base_dir, name, client=client, keypair=keypair, subscribe_event_messages=subscribe_event_messages)
 
     async def address(self) -> str:
         return await super().address({
@@ -52,13 +56,11 @@ class ValidatorContract(BasicContract):
         print(' Validator:')
         await super()._process_event(event)
         if event.name == 'RevealPlz':
-            h = event.value['hashedQuotation']
-            hash_key = str(int(h, 16))
+            hashed = event.value['hashedQuotation']
+            hash_key = str(int(hashed, 16))
             if hash_key in self._hashed_predictions:
                 one_usd_cost, salt = self._hashed_predictions[hash_key]
                 await self.reveal_quotation(one_usd_cost, salt, hash_key)
-            else:
-                raise Exception('Hash not found!')
 
     async def reveal_quotation(
         self,
@@ -66,6 +68,7 @@ class ValidatorContract(BasicContract):
         salt: str,
         hashed_quotation: str,
     ) -> None:
+        print(f' Python:\n  hashed_quotation = {hashed_quotation}')
         await self._call_method(
             method='revealQuotation',
             args={
@@ -76,9 +79,10 @@ class ValidatorContract(BasicContract):
         )
 
 
-    async def set_quotation(self, one_usd_cost: int) -> None:
+    async def set_quotation(self, one_usd_cost: int, remember_quotation=True) -> None:
         salt, hash_value = self._calc_hash(one_usd_cost)
-        self._hashed_predictions[hash_value] = (one_usd_cost, salt)
+        if remember_quotation:
+            self._hashed_predictions[hash_value] = (one_usd_cost, salt)
         await self._call_method(
             method='setQuotation',
             args={'hashedQuotation': hash_value},
@@ -94,3 +98,6 @@ class ValidatorContract(BasicContract):
 
     async def sign_up(self):
         await self._call_method('signUp')
+
+    async def clean_up(self, destination):
+        await self._call_method('cleanUp', {'destination': destination})

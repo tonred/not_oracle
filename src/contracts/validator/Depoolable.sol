@@ -8,8 +8,6 @@ import "../Interfaces.sol";
 
 abstract contract Depoolable is IDepoolable {
 
-    // uint64 constant MIN_BID_BALANCE = 5 ton;
-
     uint32 constant ERROR_DEPOOL_NOT_REGISTERED = 131;
     uint32 constant ERROR_DEPOOL_NOT_ENOUGH_VALUE = 132;
     uint32 constant ERROR_DEPOOL_NOT_ACTIVE = 133;
@@ -20,13 +18,11 @@ abstract contract Depoolable is IDepoolable {
     mapping (address => bool) public depools;
 
     address public activeDepool;
-    // bool public initialized;
     bool public ended;
     bool public terminationStarted;
     uint128 public amountDeposited;
     uint128 public amountToSendExternally;
     address public depooledParticipant;
-    // address public dest;
     address public owner;
 
     function init(
@@ -58,15 +54,15 @@ abstract contract Depoolable is IDepoolable {
         require(depools.exists(msg.sender), ERROR_DEPOOL_NOT_REGISTERED);
         tvm.accept();
 
-        if(terminationStarted){
+        if (terminationStarted){
             delete depools[msg.sender];
-            if(depools.empty()) {
+            if (depools.empty()) {
                 selfdestruct(owner);
             }
         }
-        else if(ended && msg.sender == activeDepool) {
+        else if (ended && msg.sender == activeDepool) {
             uint128 realAmountToSend = math.min(msg.value, amountToSendExternally);
-            if(realAmountToSend > 0) {
+            if (realAmountToSend > 0) {
                 owner.transfer(realAmountToSend, false, 1);
             }
             IDePool(msg.sender).transferStake(depooledParticipant, ordinaryStake);

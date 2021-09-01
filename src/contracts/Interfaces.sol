@@ -17,7 +17,7 @@ interface IElector {
     function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
 
     // has to be called by contract itself on last revealQuotation call
-    function calcFinalQuotation() external;
+    // function calcFinalQuotation() external;
 
     // AFTER VALIDATION PHASE
     function cleanUp(address destination) external;

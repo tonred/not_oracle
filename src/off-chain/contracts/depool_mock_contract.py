@@ -8,12 +8,12 @@ from .ton_contract import BasicContract, DecodedMessageBody
 class DePoolMockContract(BasicContract):
     async def create(
         self,
-        dir: str,
+        base_dir: str,
         name: str,
         client: TonClient=None,
         keypair=None,
     ) -> None:
-        await super().create(dir, name, client=client, keypair=keypair)
+        await super().create(base_dir, name, client=client, keypair=keypair)
 
     async def address(self) -> str:
         return await super().address({})
@@ -34,3 +34,6 @@ class DePoolMockContract(BasicContract):
             'transferStake',
             {'dest': dest, 'amount': amount},
         )
+
+    async def clean_up(self, destination):
+        await self._call_method('cleanUp', {'destination': destination})

@@ -6,20 +6,25 @@ CONFIG_PATH = './off-chain/config.json'
 with open(CONFIG_PATH, 'w') as f:
     json.dump(
         {
-            "use_se_giver": True,
+            # "network": r"https://net.ton.dev",
+            "network": r"http://localhost",
             "multisig": {
-                "address": "",
-                "public_key": "",
-                "private_key": ""
+                # "address": "0:4015f67493f1b53afde587eaa1dd8d6af88665b817e231130b1582018548b5f8",
+                "address": "0:d5f5cfc4b52d2eb1bd9d3a8e51707872c7ce0c174facddd0e06ae5ffd17d2fcd",
+                # "file_name": "SafeMultisigWalletDev",
+                "file_name": "SafeMultisigWallet",
             },
             "elector": {
                 "address": "",
                 "public_key": "",
                 "private_key": "",
                 "sign_up_start_time": int(time.time()),
-                "sign_up_duration": 5,
-                "validation_start_time": int(time.time()) + 10,
-                "validation_duration": 1000,
+                "sign_up_duration": 10,
+                # "sign_up_duration": 40,
+                "validation_start_time": int(time.time()) + 15,
+                # "validation_start_time": int(time.time()) + 60,
+                "validation_duration": 40,
+                # "validation_duration": 300,
                 "validators_code": ""
             },
             "validator": {
@@ -27,9 +32,9 @@ with open(CONFIG_PATH, 'w') as f:
                 "public_key": "",
                 "private_key": "",
                 "delay_between_quotations": 1,
-                "start_balance": 30000000000,
-                "treshold_to_top_up": 10000000000,
-                "send_for_top_up": 20000000000
+                "start_balance": 60 * 10**9,
+                "treshold_to_top_up": 5 * 10**9,
+                "send_for_top_up": 10 * 10**9
             },
             "depool": {
                 "address": "",
