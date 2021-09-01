@@ -1,4 +1,4 @@
 from .depool_mock_contract import DePoolMockContract
-from .elector_contract import ElectorContract
-from .validator_contract import ValidatorContract
+from .not_elector_contract import NotElectorContract
+from .not_validator_contract import NotValidatorContract
 from .safe_multsig_contract import MultisigContract

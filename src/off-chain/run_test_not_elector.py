@@ -7,14 +7,14 @@ from typing import List
 from tonclient.types import DecodedMessageBody, KeyPair
 
 from utils import client
-from contracts import ElectorContract
+from contracts import NotElectorContract
 
 
 CONFIG_PATH = './off-chain/config.json'
 events: List[DecodedMessageBody] = []
 
 
-class LoggingElector(ElectorContract):
+class LoggingNotElector(NotElectorContract):
     async def _process_event(self, event: DecodedMessageBody):
         if event.name == 'oneUSDCostCalculatedEvent':
             event.value['time'] = int(event.value['time'], 16)
@@ -30,35 +30,35 @@ with open(CONFIG_PATH) as f:
 
 
 async def main():
-    e_contract = LoggingElector()
+    e_contract = LoggingNotElector()
 
     await e_contract.create(
         base_dir='./artifacts',
-        name='Elector',
+        name='NotElector',
         client=client,
         keypair=KeyPair(
-            public=config['elector']['public_key'],
-            secret=config['elector']['private_key'],
+            public=config['not_elector']['public_key'],
+            secret=config['not_elector']['private_key'],
         )
     )
 
     await asyncio.sleep(
-        (config['elector']['sign_up_start_time'] +
-            config['elector']['sign_up_duration']) - int(time.time()) + 1
+        (config['not_elector']['sign_up_start_time'] +
+            config['not_elector']['sign_up_duration']) - int(time.time()) + 1
     )
     await e_contract.end_election()
     await asyncio.sleep(
-        (config['elector']['validation_start_time']) - time.time() + 0.1
+        (config['not_elector']['validation_start_time']) - time.time() + 0.1
     )
 
-    while time.time() < config['elector']['validation_start_time'] + config['elector']['validation_duration'] + 1:
+    while time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration'] + 1:
         start_time = time.time()
-        print('now: {}'.format(start_time - config['elector']['validation_start_time']))
+        print('now: {}'.format(start_time - config['not_elector']['validation_start_time']))
 
-        process_electors_events_task = asyncio.create_task(e_contract.process_events())
+        process_not_electors_events_task = asyncio.create_task(e_contract.process_events())
 
         _, pending = await asyncio.wait(
-            (process_electors_events_task,),
+            (process_not_electors_events_task,),
             timeout=1
         )
         delta = time.time() - start_time

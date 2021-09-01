@@ -6,7 +6,7 @@ from tonclient.types import KeyPair
 
 from utils import send_tons_with_se_giver,\
     send_tons_with_multisig, client
-from contracts import ValidatorContract, ElectorContract, DePoolMockContract
+from contracts import NotValidatorContract, NotElectorContract, DePoolMockContract
 
 
 CONFIG_PATH = './off-chain/config.json'
@@ -17,15 +17,15 @@ with open(CONFIG_PATH) as f:
 
 
 async def main():
-    # prepare elector and depool
-    e_contract = ElectorContract()
+    # prepare not_elector and depool
+    e_contract = NotElectorContract()
     await e_contract.create(
         base_dir='./artifacts',
-        name='Elector',
+        name='NotElector',
         client=client,
         keypair=KeyPair(
-            public=config['elector']['public_key'],
-            secret=config['elector']['private_key'],
+            public=config['not_elector']['public_key'],
+            secret=config['not_elector']['private_key'],
         ),
         subscribe_event_messages=False,
     )
@@ -41,11 +41,11 @@ async def main():
         )
     )
 
-    # init Validator object
-    v_contract = ValidatorContract()
+    # init NotValidator object
+    v_contract = NotValidatorContract()
     await v_contract.create(
         base_dir='./artifacts',
-        name='Validator',
+        name='NotValidator',
         client=client,
         subscribe_event_messages=False,
     )
@@ -54,21 +54,21 @@ async def main():
     await send_tons_with_multisig(
     # await send_tons_with_se_giver(
         await v_contract.address(),
-        config['validator']['start_balance'],
+        config['not_validator']['start_balance'],
         os.path.join(os.path.dirname(__file__), '../artifacts')
     )
 
     # deploy
     await v_contract.deploy(
-        elector_address=config['elector']['address'],
-        validation_start_time=str(config['elector']['validation_start_time']),
-        validation_duration=str(config['elector']['validation_duration']),
+        not_elector_address=config['not_elector']['address'],
+        validation_start_time=str(config['not_elector']['validation_start_time']),
+        validation_duration=str(config['not_elector']['validation_duration']),
         depools={config['depool']['address']: True},
         owner='0:' + '0'*64,
         # TODO top_up settings
     )
 
-    # TODO transfer DePool stake to validator
+    # TODO transfer DePool stake to not_validator
     await d_contract.transfer_stake(
         dest=await v_contract.address(),
         amount=20000 * 10**9,
@@ -80,9 +80,9 @@ async def main():
     await d_contract.clean_up(config['multisig']['address'])
 
     # update config
-    config['validator']['address'] = await v_contract.address()
-    config['validator']['public_key'] = v_contract._keypair.public
-    config['validator']['private_key'] = v_contract._keypair.secret
+    config['not_validator']['address'] = await v_contract.address()
+    config['not_validator']['public_key'] = v_contract._keypair.public
+    config['not_validator']['private_key'] = v_contract._keypair.secret
     with open(CONFIG_PATH, 'w') as f:
         json.dump(config, f, indent=4)
 

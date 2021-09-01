@@ -6,7 +6,7 @@
 		{
 			"name": "constructor",
 			"inputs": [
-				{"name":"electorArg","type":"address"},
+				{"name":"notElectorArg","type":"address"},
 				{"name":"validationStartTimeArg","type":"uint256"},
 				{"name":"validationDurationArg","type":"uint256"},
 				{"name":"depoolsArg","type":"map(address,bool)"},
@@ -159,11 +159,11 @@
 			]
 		},
 		{
-			"name": "elector",
+			"name": "notElector",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"elector","type":"address"}
+				{"name":"notElector","type":"address"}
 			]
 		},
 		{
@@ -208,7 +208,7 @@
 		{"name":"depooledParticipant","type":"address"},
 		{"name":"owner","type":"address"},
 		{"name":"stakeSize","type":"uint128"},
-		{"name":"elector","type":"address"},
+		{"name":"notElector","type":"address"},
 		{"name":"validationStartTime","type":"uint256"},
 		{"name":"validationDuration","type":"uint256"}
 	]

@@ -14,25 +14,25 @@ with open(CONFIG_PATH, 'w') as f:
                 # "file_name": "SafeMultisigWalletDev",
                 "file_name": "SafeMultisigWallet",
             },
-            "elector": {
+            "not_elector": {
                 "address": "",
                 "public_key": "",
                 "private_key": "",
                 "sign_up_start_time": int(time.time()),
-                "sign_up_duration": 10,
+                "sign_up_duration": 30,
                 # "sign_up_duration": 40,
-                "validation_start_time": int(time.time()) + 15,
+                "validation_start_time": int(time.time()) + 45,
                 # "validation_start_time": int(time.time()) + 60,
-                "validation_duration": 40,
+                "validation_duration": 300,
                 # "validation_duration": 300,
-                "validators_code": ""
+                "not_validators_code": ""
             },
-            "validator": {
+            "not_validator": {
                 "address": "",
                 "public_key": "",
                 "private_key": "",
                 "delay_between_quotations": 1,
-                "start_balance": 60 * 10**9,
+                "start_balance": 6000 * 10**9,
                 "treshold_to_top_up": 5 * 10**9,
                 "send_for_top_up": 10 * 10**9
             },

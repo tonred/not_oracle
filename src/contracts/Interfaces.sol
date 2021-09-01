@@ -3,7 +3,7 @@ pragma ton-solidity >= 0.45.0;
 pragma AbiHeader expire;
 pragma AbiHeader time;
 
-interface IElector {
+interface INotElector {
     // ELECTION PHASE
     function signUp(
         uint128 stakeSize,
@@ -23,7 +23,7 @@ interface IElector {
     function cleanUp(address destination) external;
 }
 
-interface IValidator {
+interface INotValidator {
     // ELECTION PHASE
     function signUp() external;
 

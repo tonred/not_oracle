@@ -3,7 +3,7 @@ from tonclient.client import TonClient
 from .ton_contract import BasicContract, DecodedMessageBody
 
 
-class ElectorContract(BasicContract):
+class NotElectorContract(BasicContract):
     async def create(
         self,
         base_dir: str,
@@ -20,7 +20,6 @@ class ElectorContract(BasicContract):
             'signUpStageDurationArg': '0',
             'validationStageBeginningArg': '0',
             'validationStageDurationArg': '0',
-            'validatorsCodeArg': '',
         })
 
     async def deploy(
@@ -38,7 +37,7 @@ class ElectorContract(BasicContract):
         })
 
     async def _process_event(self, event: DecodedMessageBody):
-        print(' Elector:')
+        print(' NotElector:')
         await super()._process_event(event)
 
     async def end_election(self) -> None:

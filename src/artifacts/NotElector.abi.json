@@ -65,11 +65,11 @@
 			]
 		},
 		{
-			"name": "validatorsRank",
+			"name": "notValidatorsRank",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"validatorsRank","type":"map(address,uint128)"}
+				{"name":"notValidatorsRank","type":"map(address,uint128)"}
 			]
 		},
 		{
@@ -131,10 +131,10 @@
 		{"name":"_constructorFlag","type":"bool"},
 		{"name":"status","type":"uint8"},
 		{"name":"revealingStartTime","type":"uint256"},
-		{"name":"validatorsStake","type":"map(address,uint128)"},
+		{"name":"notValidatorsStake","type":"map(address,uint128)"},
 		{"name":"random","type":"uint256"},
 		{"name":"lastNow","type":"uint256"},
-		{"name":"validatorsRank","type":"map(address,uint128)"},
+		{"name":"notValidatorsRank","type":"map(address,uint128)"},
 		{"name":"lastQuotationTime","type":"map(address,uint256)"},
 		{"name":"lastQuotationHash","type":"map(address,uint256)"},
 		{"name":"badChecksInARow","type":"map(address,uint256)"},
