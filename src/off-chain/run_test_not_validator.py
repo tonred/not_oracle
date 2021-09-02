@@ -65,25 +65,27 @@ async def main_loop():
 
     # sign-up
     await v_contract.sign_up()
-    assert time.time() < config['not_elector']['sign_up_start_time'] + \
-        config['not_elector']['sign_up_duration']
+    # assert time.time() < config['not_elector']['sign_up_start_time'] + \
+    #     config['not_elector']['sign_up_duration']
 
     validation_start_time = config['not_elector']['validation_start_time']
     for _, quotation in enumerate(test['quotations']):
         print(quotation)
-        now = int(time.time())
+        now = time.time()
         if now < quotation['set_quotation_time'] + validation_start_time:
             await asyncio.sleep((quotation['set_quotation_time'] + validation_start_time) - now)
 
-        await v_contract.set_quotation(
+        asyncio.create_task(v_contract.set_quotation(
             quotation['one_USD_cost'],
             quotation['reveal'],
-        )
-        await v_contract.process_events()
+        ))
+        asyncio.create_task(v_contract.process_events())
 
     if time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']:
         await asyncio.sleep((config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']) - time.time() + 1)
 
+    await asyncio.sleep(10)
+    await v_contract.clean_up(config['multisig']['address'])
 
 if __name__ == '__main__':
     asyncio.run(main_loop())

@@ -22,6 +22,10 @@ class LoggingNotElector(NotElectorContract):
             'name': event.name,
             'value': event.value
         })
+        print({
+            'name': event.name,
+            'value': event.value
+        })
         await super()._process_event(event)
 
 
@@ -65,10 +69,11 @@ async def main():
         if not pending:
             await asyncio.sleep(1 - delta)
 
-    print('All!')
+    await asyncio.sleep(10)
     await e_contract.process_events()
     with open('result.json', 'w') as file:
         json.dump(events, file, indent=4)
+    await e_contract.clean_up(config['multisig']['address'])
 
 
 if __name__ == '__main__':
