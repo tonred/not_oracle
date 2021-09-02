@@ -66,7 +66,7 @@ class BasicContract(ABC):
         encoded = await self._client.abi.encode_message(params=encode_params)
         return encoded.address
 
-    async def deploy(self, args: dict={}) -> None:
+    async def deploy(self, args: dict={}, retries: int=3,) -> None:
         call_set = CallSet(
             function_name='constructor',
             header=FunctionHeader(pubkey=self._keypair.public),
@@ -82,11 +82,21 @@ class BasicContract(ABC):
             message_encode_params=encode_params,
             send_events=False
         )
-        return await self._client.processing.process_message(
-            params=process_params
-        )
+        try:
+            return await self._client.processing.process_message(
+                params=process_params
+            )
+        except TonException:
+            if retries != 0:
+                return await self.deploy(args, retries-1)
 
-    async def _call_method(self, method: str, args: dict={}, callback: Callable=None) -> Any:
+    async def _call_method(
+        self,
+        method: str,
+        args: dict={},
+        callback: Callable=None,
+        retries: int=3,
+    ) -> Any:
         call_set = CallSet(
             function_name=method,
             header=FunctionHeader(
@@ -111,10 +121,13 @@ class BasicContract(ABC):
                 callback=callback,
             )).decoded.output
         except TonException:
-            return (await self._client.processing.process_message(
-                params=process_params,
-                callback=callback,
-            )).decoded.output
+            if retries != 0:
+                return await self._call_method(
+                    method,
+                    args,
+                    callback,
+                    retries-1,
+                )
 
     async def get(self, name: str):
         raise NotImplementedError
@@ -124,22 +137,33 @@ class BasicContract(ABC):
         collection: str,
         _filter: Any,
         fields: str,
-        listener: Callable
+        listener: Callable,
+        retries: int=3,
     ) -> None:
-        prev_subscription = self._subscriptions.get(collection)
-        if prev_subscription:
-            del self._subscriptions[collection]
-            await self._client.net.unsubscribe(prev_subscription)
+        try:
+            prev_subscription = self._subscriptions.get(collection)
+            if prev_subscription:
+                del self._subscriptions[collection]
+                await self._client.net.unsubscribe(prev_subscription)
 
-        subscription = await self._client.net.subscribe_collection(
-            params=ParamsOfSubscribeCollection(
-                collection,
-                result=fields,
-                filter=_filter
-            ),
-            callback=listener,
-        )
-        self._subscriptions[collection] = subscription
+            subscription = await self._client.net.subscribe_collection(
+                params=ParamsOfSubscribeCollection(
+                    collection,
+                    result=fields,
+                    filter=_filter
+                ),
+                callback=listener,
+            )
+            self._subscriptions[collection] = subscription
+        except TonException:
+            if retries != 0:
+                self._subscribe(
+                    collection,
+                    _filter,
+                    fields,
+                    listener,
+                    retries-1,
+                )
 
     async def _subscribe_account(
         self,
