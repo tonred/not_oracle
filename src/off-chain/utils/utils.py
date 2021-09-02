@@ -10,7 +10,6 @@ from tonclient.client import TonClient
 from contracts import NotValidatorContract, MultisigContract
 
 
-# BASE_DIR = os.path.dirname(__file__)
 GIVER_ADDRESS = '0:b5e9240fc2d2f1ff8cbb1d1dee7fb7cae155e5f6320e585fcc685698994a19a5'
 
 CONFIG_PATH = './off-chain/config.json'
@@ -28,7 +27,6 @@ client = TonClient(
 
 
 async def get_quotation(contract: NotValidatorContract):
-    # TODO implement session-pool
     async with aiohttp.ClientSession() as session:
         async with session.post(
             'https://cex.io/api/convert/TON/USD',
@@ -61,6 +59,7 @@ async def send_tons_with_se_giver(
         message_encode_params=encode_params, send_events=False)
     await client.processing.process_message(params=process_params)
 
+
 async def send_tons_with_multisig(
     address: str,
     value: int,
@@ -80,9 +79,6 @@ async def send_tons_with_multisig(
             secret=keys['secret'],
         )
     )
-    # print('multisig address: {}'.format(
-    #     await multisig.address()
-    # ))
 
     await multisig.submit_transaction(
         dest=address,

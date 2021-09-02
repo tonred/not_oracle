@@ -36,7 +36,6 @@ async def main_loop():
             public=config['not_elector']['public_key'],
             secret=config['not_elector']['private_key'],
         ),
-        subscribe_event_messages=False,
     )
 
     await asyncio.sleep(
@@ -45,22 +44,23 @@ async def main_loop():
     )
     await e_contract.end_election()
 
-    # TODO check if we won election
-
     await asyncio.sleep(
         config['not_elector']['validation_start_time'] - time.time()
     )
 
     while time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration'] + 1:
         start_time = time.time()
+        print('now: {}'.format(time.time() - config['not_elector']['validation_start_time']))
 
         get_quotation_task = asyncio.create_task(get_quotation(v_contract))
         process_not_validators_events_task = asyncio.create_task(v_contract.process_events())
+        process_not_electors_events_task = asyncio.create_task(e_contract.process_events())
 
         _, pending = await asyncio.wait(
             (
                 get_quotation_task,
                 process_not_validators_events_task,
+                process_not_electors_events_task,
             ),
             timeout=1
         )
@@ -69,6 +69,7 @@ async def main_loop():
             await asyncio.sleep(1 - delta)
 
     await asyncio.sleep(15)
+    await e_contract.clean_up(config['multisig']['address'])
     await v_contract.clean_up(config['multisig']['address'])
 
 
