@@ -57,7 +57,6 @@ async def main():
 
     while time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration'] + 1:
         start_time = time.time()
-        # print('now: {}'.format(start_time - config['not_elector']['validation_start_time']))
 
         process_not_electors_events_task = asyncio.create_task(e_contract.process_events())
 

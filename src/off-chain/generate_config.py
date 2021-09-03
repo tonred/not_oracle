@@ -22,9 +22,9 @@ with open(CONFIG_PATH, 'w') as f:
                 "private_key": "",
                 "sign_up_start_time": int(time.time()),
 
-                "sign_up_duration": 30,
-                "validation_start_time": int(time.time()) + 45,
-                "validation_duration": 120,
+                "sign_up_duration": 10,
+                "validation_start_time": int(time.time()) + 20,
+                "validation_duration": 40,
 
                 # "sign_up_duration": 90,
                 # "validation_start_time": int(time.time()) + 100,
