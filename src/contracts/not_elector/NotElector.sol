@@ -41,7 +41,6 @@ contract NotElector is INotElector {
 
     // DATA (revealing mode)
     mapping(address => uint256) quotationsToReveal;
-    mapping(address => uint256) askedQuotations;
     mapping(address => uint128) revealedQuotations;
 
     // PARAMS
@@ -132,12 +131,6 @@ contract NotElector is INotElector {
         if (status == Status.revealingMode) {
             if ((now - revealingStartTime) > REVEALING_MODE_DURATION) {
                 calcFinalQuotation();
-            } else if (quotationsToReveal.exists(msg.sender)) {
-                INotValidator(msg.sender).requestRevealing(
-                    quotationsToReveal[msg.sender]
-                );
-                askedQuotations[msg.sender] = quotationsToReveal[msg.sender];
-                delete quotationsToReveal[msg.sender];
             }
         }
 
@@ -150,17 +143,17 @@ contract NotElector is INotElector {
     ) override external transferRemainingValueBack {
         require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
         require(status == Status.revealingMode, Errors.NOT_REVEALING_MODE);
-        require(askedQuotations.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
+        require(quotationsToReveal.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
 
-        uint256 quotationHash = askedQuotations[msg.sender];
+        uint256 quotationHash = quotationsToReveal[msg.sender];
         require(
             saltedCostHash(oneUSDCost, salt) == quotationHash,
             Errors.INCORRECT_REVEAL_DATA
         );
 
         revealedQuotations[msg.sender] = oneUSDCost;
-        delete askedQuotations[msg.sender];
-        if (quotationsToReveal.empty() && askedQuotations.empty()) {
+        delete quotationsToReveal[msg.sender];
+        if (quotationsToReveal.empty()) {
             calcFinalQuotation();
         }
     }
@@ -200,7 +193,6 @@ contract NotElector is INotElector {
                     delete notValidatorsRank[quotation.notValidator];
                     delete revealedQuotations[quotation.notValidator];
                     delete badChecksInARow[quotation.notValidator];
-                    delete askedQuotations[quotation.notValidator];
                     delete quotationsToReveal[quotation.notValidator];
                 } else {
                     badChecksInARow[quotation.notValidator] += 1;
@@ -226,33 +218,6 @@ contract NotElector is INotElector {
                     delete notValidatorsRank[notValidator];
                     delete revealedQuotations[notValidator];
                     delete badChecksInARow[notValidator];
-                    delete askedQuotations[notValidator];
-                    delete quotationsToReveal[notValidator];
-                } else {
-                    badChecksInARow[notValidator] += 1;
-                    notValidatorsRank[notValidator] = r_new;
-                }
-            } else {
-                notValidatorsRank[notValidator] = r_new;
-                delete badChecksInARow[notValidator];
-            }
-        }
-
-        for ((address notValidator,) : askedQuotations) {
-            uint128 r = notValidatorsRank[notValidator];
-            uint128 r_c = 1000000000;
-
-            // here constant a = 2/7
-            uint128 r_new = (5*r / 7) + (2*r_c / 7);
-            if (r_new >= 500000000) {
-                uint badChecks = badChecksInARow[notValidator];
-                if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
-                    INotValidator(notValidator).slash();
-                    emit notValidatorSlashed(notValidator);
-                    delete notValidatorsRank[notValidator];
-                    delete revealedQuotations[notValidator];
-                    delete badChecksInARow[notValidator];
-                    delete askedQuotations[notValidator];
                     delete quotationsToReveal[notValidator];
                 } else {
                     badChecksInARow[notValidator] += 1;
@@ -281,9 +246,12 @@ contract NotElector is INotElector {
     // INLINES
     function turnOnRevealingMode() inline private {
         mapping(address => uint256) tempQuotationsToReveal;
+        uint256 h;
         for ((address notValidator, uint time) : lastQuotationTime) {
             if (now - time <= QUOTATION_LIFETIME) {
-                tempQuotationsToReveal[notValidator] = lastQuotationHash[notValidator];
+                h = lastQuotationHash[notValidator];
+                tempQuotationsToReveal[notValidator] = h;
+                INotValidator(notValidator).requestRevealing(h);
             }
         }
 
@@ -292,7 +260,6 @@ contract NotElector is INotElector {
         revealingStartTime = now;
 
         delete revealedQuotations;
-        delete askedQuotations;
         delete lastQuotationTime;
         delete lastQuotationHash;
     }

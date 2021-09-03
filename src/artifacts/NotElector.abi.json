@@ -163,7 +163,6 @@
 		{"name":"lastQuotationHash","type":"map(address,uint256)"},
 		{"name":"badChecksInARow","type":"map(address,uint256)"},
 		{"name":"quotationsToReveal","type":"map(address,uint256)"},
-		{"name":"askedQuotations","type":"map(address,uint256)"},
 		{"name":"revealedQuotations","type":"map(address,uint128)"},
 		{"name":"signUpStageBeginning","type":"uint256"},
 		{"name":"signUpStageDuration","type":"uint256"},
