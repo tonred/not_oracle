@@ -15,4 +15,4 @@ echo "Deploy not_validator"
 python off-chain/deploy_not_validator.py
 
 echo "Run validation"
-python off-chain/run_not_validation.py
+python off-chain/run_not_validation_demo.py

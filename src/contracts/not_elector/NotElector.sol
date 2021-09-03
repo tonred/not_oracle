@@ -12,13 +12,15 @@ contract NotElector is INotElector {
     // EVENTS
     event electionIsOverEvent();
     event oneUSDCostCalculatedEvent(uint128 oneUSDCost, uint time);
+    event oneUSDCostCalculationStarted(uint time);
+    event notValidatorSlashed(address _address);
+    event oops(Quotation[] xs);
 
     // ENUMS
     enum Status {
         electionIsInProgress,
         validation,
         revealingMode,
-        waitingForFinalQuotationCalculation,
         validationIsOver
     }
 
@@ -57,8 +59,8 @@ contract NotElector is INotElector {
 
     // OTHER CONSTANTS
     uint constant REVEAL_FREQUENCY_FACTOR = 2;
-    uint constant REVEALING_MODE_DURATION = 100;
-    uint constant QUOTATION_LIFETIME = 100;
+    uint constant REVEALING_MODE_DURATION = 5;
+    uint constant QUOTATION_LIFETIME = 5;
     uint constant NUMBER_OF_CHECKS_BEFORE_BAN = 3;
 
     // METHODS
@@ -100,7 +102,7 @@ contract NotElector is INotElector {
         tvm.accept();
 
         for ((address notValidator, uint stakeSize) : notValidatorsStake) {
-            // TODO algorithm should be different!!!!
+            // TODO algorithm can be different!!!!
             if (stakeSize >= MIN_STAKE_SIZE) {
                 notValidatorsRank[notValidator] = 0;
             }
@@ -116,8 +118,6 @@ contract NotElector is INotElector {
     ) override external takeComissionAndTransferRemainingValueBack {
         require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
 
-        // emit Debug(status);
-
         lastQuotationHash[msg.sender] = hashedQuotation;
         lastQuotationTime[msg.sender] = now;
 
@@ -131,7 +131,6 @@ contract NotElector is INotElector {
 
         if (status == Status.revealingMode) {
             if ((now - revealingStartTime) > REVEALING_MODE_DURATION) {
-                status = Status.waitingForFinalQuotationCalculation;
                 calcFinalQuotation();
             } else if (quotationsToReveal.exists(msg.sender)) {
                 INotValidator(msg.sender).requestRevealing(
@@ -162,7 +161,6 @@ contract NotElector is INotElector {
         revealedQuotations[msg.sender] = oneUSDCost;
         delete askedQuotations[msg.sender];
         if (quotationsToReveal.empty() && askedQuotations.empty()) {
-            status = Status.waitingForFinalQuotationCalculation;
             calcFinalQuotation();
         }
     }
@@ -171,22 +169,20 @@ contract NotElector is INotElector {
     struct Quotation {address notValidator; uint128 value;}
 
     function calcFinalQuotation() private inline {
-        Quotation[] quotations = sortedQuotations();
+        Quotation[] quotations = qSortedQuotations();
         uint n = quotations.length;
 
-        uint128 v_0 = quotations[0].value;
         uint128 v_25 = quotations[(n - 1) / 4].value;
         uint128 v_50 = quotations[n / 2].value;
         uint128 v_75 = quotations[(3 * (n - 1)) / 4].value;
-        uint128 v_100 = quotations[n - 1].value;
 
         for (uint i = 0; i < n; i++) {
             uint128 P; // P=10^9 means probability=1
             Quotation quotation = quotations[i];
-            if (quotation.value < v_25) {
-                P = (quotation.value - v_0) * 1000000000 / v_25;
-            } else if (quotation.value > v_75) {
-                P = (v_100 - quotation.value) * 1000000000 / (v_100 - v_75);
+            if (quotation.value < v_25 && n > 3) {
+                P = uint128(i * 1000000000 / (n / 4));
+            } else if (quotation.value > v_75 && n > 3) {
+                P = uint128((n - i - 1) * 1000000000 / (n / 4));
             } else {
                 P = 1000000000;
             }
@@ -200,8 +196,12 @@ contract NotElector is INotElector {
                 uint badChecks = badChecksInARow[quotation.notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
                     INotValidator(quotation.notValidator).slash();
+                    emit notValidatorSlashed(quotation.notValidator);
                     delete notValidatorsRank[quotation.notValidator];
                     delete revealedQuotations[quotation.notValidator];
+                    delete badChecksInARow[quotation.notValidator];
+                    delete askedQuotations[quotation.notValidator];
+                    delete quotationsToReveal[quotation.notValidator];
                 } else {
                     badChecksInARow[quotation.notValidator] += 1;
                     notValidatorsRank[quotation.notValidator] = r_new;
@@ -222,8 +222,12 @@ contract NotElector is INotElector {
                 uint badChecks = badChecksInARow[notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
                     INotValidator(notValidator).slash();
+                    emit notValidatorSlashed(notValidator);
                     delete notValidatorsRank[notValidator];
                     delete revealedQuotations[notValidator];
+                    delete badChecksInARow[notValidator];
+                    delete askedQuotations[notValidator];
+                    delete quotationsToReveal[notValidator];
                 } else {
                     badChecksInARow[notValidator] += 1;
                     notValidatorsRank[notValidator] = r_new;
@@ -244,8 +248,12 @@ contract NotElector is INotElector {
                 uint badChecks = badChecksInARow[notValidator];
                 if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
                     INotValidator(notValidator).slash();
+                    emit notValidatorSlashed(notValidator);
                     delete notValidatorsRank[notValidator];
                     delete revealedQuotations[notValidator];
+                    delete badChecksInARow[notValidator];
+                    delete askedQuotations[notValidator];
+                    delete quotationsToReveal[notValidator];
                 } else {
                     badChecksInARow[notValidator] += 1;
                     notValidatorsRank[notValidator] = r_new;
@@ -263,7 +271,6 @@ contract NotElector is INotElector {
 
     // AFTER VALIDATION PHASE
     function cleanUp(address destination) override external {
-        // TODO check (msg.sender == owner) or something like that...
         require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
         require(now > validationStageBeginning + validationStageDuration);
         tvm.accept();
@@ -300,21 +307,55 @@ contract NotElector is INotElector {
         return tvm.hash(builder.toCell());
     }
 
-    function sortedQuotations() inline private returns (Quotation[] res) {
+    struct Boundaries{uint l; uint r;}
+    function qSortedQuotations() inline private returns (Quotation[] res) {
         for ((address notValidator, uint128 value) : revealedQuotations) {
             res.push(Quotation(notValidator, value));
         }
 
-        uint n = res.length;
-        Quotation temp;
-        for (uint i = 1; i < n; i++) {
-            for (uint j = 0; j < i; j++) {
-                if (res[i].value < res[j].value) {
-                    temp = res[i];
+        vector(Boundaries) s;
+        s.push(Boundaries(0, res.length - 1));
+
+        uint l;
+        uint r;
+        uint i;
+        uint j;
+        Quotation none;
+        uint128 v;
+        while (!s.empty()) {
+            (l, r) = s.pop().unpack();
+            if (r > l) {
+                v = res[(l + r) / 2].value;
+                i = l;
+                j = r;
+                while (i <= j) {
+                    while (res[i].value < v){
+                        i++;
+                    }
+                    while (res[j].value > v){
+                        j--;
+                    }
+                    if (i >= j)
+                        break;
+                    none = res[i];
                     res[i] = res[j];
-                    res[j] = temp;
+                    res[j] = none;
+                    i++;
+                    j--;
                 }
+                i = j;
+
+                s.push(Boundaries(i + 1, r));
+                s.push(Boundaries(l, i));
             }
+        }
+
+        uint128 prev;
+        for (i = 0; i < res.length; i++) {
+            if (res[uint(i)].value < prev) {
+                emit oops(res);
+            }
+            prev = res[i].value;
         }
     }
 

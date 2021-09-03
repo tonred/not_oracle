@@ -210,7 +210,5 @@ class BasicContract(ABC):
 
     @abstractmethod
     async def _process_event(self, event: DecodedMessageBody):
-        print(f'  body_type = {event.body_type}')
-        print(f'  name = {event.name}')
-        print(f'  value = {event.value}')
-        print(f'  header = {event.header}')
+        pass
+

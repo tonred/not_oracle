@@ -37,7 +37,7 @@ class NotElectorContract(BasicContract):
         })
 
     async def _process_event(self, event: DecodedMessageBody):
-        print(' NotElector:')
+        # print(' NotElector:')
         await super()._process_event(event)
 
     async def end_election(self) -> None:

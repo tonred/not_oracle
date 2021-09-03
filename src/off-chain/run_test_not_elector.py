@@ -16,7 +16,7 @@ events: List[DecodedMessageBody] = []
 
 class LoggingNotElector(NotElectorContract):
     async def _process_event(self, event: DecodedMessageBody):
-        if event.name == 'oneUSDCostCalculatedEvent':
+        if event.name in ('oneUSDCostCalculatedEvent', 'oneUSDCostCalculationStarted'):
             event.value['time'] = int(event.value['time'], 16)
         events.append({
             'name': event.name,
@@ -57,7 +57,7 @@ async def main():
 
     while time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration'] + 1:
         start_time = time.time()
-        print('now: {}'.format(start_time - config['not_elector']['validation_start_time']))
+        # print('now: {}'.format(start_time - config['not_elector']['validation_start_time']))
 
         process_not_electors_events_task = asyncio.create_task(e_contract.process_events())
 

@@ -10,11 +10,11 @@ test = {
     'not_validators': [{
         'quotations': [{
             'set_quotation_time': i,
-            'one_USD_cost': i,
+            'one_USD_cost': i if j != 0 else 1,
             'reveal': True
         } for i in range(config['not_elector']['validation_duration'])],
         'malicious': False
-    } for i in range(10)]
+    } for j in range(10)]
 }
 
 with open('test.json', 'w') as f:
