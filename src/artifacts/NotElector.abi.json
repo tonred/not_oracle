@@ -123,6 +123,30 @@
 			],
 			"outputs": [
 			]
+		},
+		{
+			"name": "oneUSDCostCalculationStarted",
+			"inputs": [
+				{"name":"time","type":"uint256"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "notValidatorSlashed",
+			"inputs": [
+				{"name":"_address","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "oops",
+			"inputs": [
+				{"components":[{"name":"notValidator","type":"address"},{"name":"value","type":"uint128"}],"name":"xs","type":"tuple[]"}
+			],
+			"outputs": [
+			]
 		}
 	],
 	"fields": [
