@@ -42,8 +42,14 @@
 		{
 			"name": "revealQuotation",
 			"inputs": [
-				{"name":"oneUSDCost","type":"uint128"},
-				{"name":"salt","type":"uint256"}
+				{"name":"oneUSDCost","type":"uint128"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "quotationIsTooOld",
+			"inputs": [
 			],
 			"outputs": [
 			]
@@ -159,11 +165,10 @@
 		{"name":"random","type":"uint256"},
 		{"name":"lastNow","type":"uint256"},
 		{"name":"notValidatorsRank","type":"map(address,uint128)"},
-		{"name":"lastQuotationTime","type":"map(address,uint256)"},
-		{"name":"lastQuotationHash","type":"map(address,uint256)"},
+		{"name":"notValidatorsRankSize","type":"uint256"},
 		{"name":"badChecksInARow","type":"map(address,uint256)"},
-		{"name":"quotationsToReveal","type":"map(address,uint256)"},
 		{"name":"revealedQuotations","type":"map(address,uint128)"},
+		{"name":"quotationsToReveal","type":"uint256"},
 		{"name":"signUpStageBeginning","type":"uint256"},
 		{"name":"signUpStageDuration","type":"uint256"},
 		{"name":"validationStageBeginning","type":"uint256"},

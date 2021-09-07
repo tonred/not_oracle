@@ -35,13 +35,12 @@ contract NotElector is INotElector {
     uint256 random;
     uint lastNow;
     mapping(address => uint128) public notValidatorsRank;
-    mapping(address => uint) lastQuotationTime;
-    mapping(address => uint256) lastQuotationHash;
+    uint notValidatorsRankSize;
     mapping(address => uint) badChecksInARow;
 
     // DATA (revealing mode)
-    mapping(address => uint256) quotationsToReveal;
     mapping(address => uint128) revealedQuotations;
+    uint quotationsToReveal;
 
     // PARAMS
     uint public signUpStageBeginning;
@@ -59,7 +58,6 @@ contract NotElector is INotElector {
     // OTHER CONSTANTS
     uint constant REVEAL_FREQUENCY_FACTOR = 2;
     uint constant REVEALING_MODE_DURATION = 5;
-    uint constant QUOTATION_LIFETIME = 5;
     uint constant NUMBER_OF_CHECKS_BEFORE_BAN = 3;
 
     // METHODS
@@ -104,6 +102,7 @@ contract NotElector is INotElector {
             // TODO algorithm can be different!!!!
             if (stakeSize >= MIN_STAKE_SIZE) {
                 notValidatorsRank[notValidator] = 0;
+                notValidatorsRankSize += 1;
             }
         }
 
@@ -116,9 +115,6 @@ contract NotElector is INotElector {
         uint256 hashedQuotation
     ) override external takeComissionAndTransferRemainingValueBack {
         require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
-
-        lastQuotationHash[msg.sender] = hashedQuotation;
-        lastQuotationTime[msg.sender] = now;
 
         TvmBuilder builder;
         builder.store(random, hashedQuotation);
@@ -138,22 +134,26 @@ contract NotElector is INotElector {
     }
 
     function revealQuotation(
-        uint128 oneUSDCost,
-        uint256 salt
+        uint128 oneUSDCost
     ) override external transferRemainingValueBack {
         require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
         require(status == Status.revealingMode, Errors.NOT_REVEALING_MODE);
-        require(quotationsToReveal.exists(msg.sender), Errors.NOTHING_TO_REVEAL);
-
-        uint256 quotationHash = quotationsToReveal[msg.sender];
-        require(
-            saltedCostHash(oneUSDCost, salt) == quotationHash,
-            Errors.INCORRECT_REVEAL_DATA
-        );
+        require(revealedQuotations[msg.sender] == 0, Errors.ALREADY_REVEALED);
 
         revealedQuotations[msg.sender] = oneUSDCost;
-        delete quotationsToReveal[msg.sender];
-        if (quotationsToReveal.empty()) {
+        quotationsToReveal -= 1;
+        if (quotationsToReveal == 0) {
+            calcFinalQuotation();
+        }
+    }
+
+    function quotationIsTooOld() override external transferRemainingValueBack {
+        require(notValidatorsRank.exists(msg.sender), Errors.WRONG_SENDER);
+        require(status == Status.revealingMode, Errors.NOT_REVEALING_MODE);
+
+        delete revealedQuotations[msg.sender];
+        quotationsToReveal -= 1;
+        if (quotationsToReveal == 0) {
             calcFinalQuotation();
         }
     }
@@ -191,9 +191,8 @@ contract NotElector is INotElector {
                     INotValidator(quotation.notValidator).slash();
                     emit notValidatorSlashed(quotation.notValidator);
                     delete notValidatorsRank[quotation.notValidator];
-                    delete revealedQuotations[quotation.notValidator];
+                    notValidatorsRankSize -= 1;
                     delete badChecksInARow[quotation.notValidator];
-                    delete quotationsToReveal[quotation.notValidator];
                 } else {
                     badChecksInARow[quotation.notValidator] += 1;
                     notValidatorsRank[quotation.notValidator] = r_new;
@@ -204,33 +203,36 @@ contract NotElector is INotElector {
             }
         }
 
-        for ((address notValidator,) : quotationsToReveal) {
-            uint128 r = notValidatorsRank[notValidator];
-            uint128 r_c = 1000000000;
+        for ((address notValidator, uint128 value) : revealedQuotations) {
+            if (value == 0) {
+                uint128 r = notValidatorsRank[notValidator];
+                uint128 r_c = 1000000000;
 
-            // here constant a = 2/7
-            uint128 r_new = (5*r / 7) + (2*r_c / 7);
-            if (r_new >= 500000000) {
-                uint badChecks = badChecksInARow[notValidator];
-                if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
-                    INotValidator(notValidator).slash();
-                    emit notValidatorSlashed(notValidator);
-                    delete notValidatorsRank[notValidator];
-                    delete revealedQuotations[notValidator];
-                    delete badChecksInARow[notValidator];
-                    delete quotationsToReveal[notValidator];
+                // here constant a = 2/7
+                uint128 r_new = (5*r / 7) + (2*r_c / 7);
+                if (r_new >= 500000000) {
+                    uint badChecks = badChecksInARow[notValidator];
+                    if (badChecks + 1 == NUMBER_OF_CHECKS_BEFORE_BAN) {
+                        INotValidator(notValidator).slash();
+                        emit notValidatorSlashed(notValidator);
+                        delete notValidatorsRank[notValidator];
+                        notValidatorsRankSize -= 1;
+                        delete badChecksInARow[notValidator];
+                    } else {
+                        badChecksInARow[notValidator] += 1;
+                        notValidatorsRank[notValidator] = r_new;
+                    }
                 } else {
-                    badChecksInARow[notValidator] += 1;
                     notValidatorsRank[notValidator] = r_new;
+                    delete badChecksInARow[notValidator];
                 }
-            } else {
-                notValidatorsRank[notValidator] = r_new;
-                delete badChecksInARow[notValidator];
             }
         }
 
         emit oneUSDCostCalculatedEvent(v_50, now - validationStageBeginning);
         status = Status.validation;
+        delete revealedQuotations;
+
         // TODO send necessery data to NOT-Bank
     }
 
@@ -247,37 +249,22 @@ contract NotElector is INotElector {
     function turnOnRevealingMode() inline private {
         mapping(address => uint256) tempQuotationsToReveal;
         uint256 h;
-        for ((address notValidator, uint time) : lastQuotationTime) {
-            if (now - time <= QUOTATION_LIFETIME) {
-                h = lastQuotationHash[notValidator];
-                tempQuotationsToReveal[notValidator] = h;
-                INotValidator(notValidator).requestRevealing(h);
-            }
+        for ((address notValidator,) : notValidatorsRank) {
+            INotValidator(notValidator).requestRevealing();
+            revealedQuotations[notValidator] = 0;
         }
 
-        quotationsToReveal = tempQuotationsToReveal;
         status = Status.revealingMode;
         revealingStartTime = now;
-
-        delete revealedQuotations;
-        delete lastQuotationTime;
-        delete lastQuotationHash;
-    }
-
-    function saltedCostHash(
-        uint128 cost,
-        uint256 salt
-    ) inline private returns (uint256) {
-        // TODO gas optimization...
-        TvmBuilder builder;
-        builder.store(cost, salt);
-        return tvm.hash(builder.toCell());
+        quotationsToReveal = notValidatorsRankSize;
     }
 
     struct Boundaries{uint l; uint r;}
     function qSortedQuotations() inline private returns (Quotation[] res) {
         for ((address notValidator, uint128 value) : revealedQuotations) {
-            res.push(Quotation(notValidator, value));
+            if (value != 0) {
+                res.push(Quotation(notValidator, value));
+            }
         }
 
         vector(Boundaries) s;

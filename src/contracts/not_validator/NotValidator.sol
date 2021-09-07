@@ -12,10 +12,14 @@ contract NotValidator is Depoolable, INotValidator {
 
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
+    event v_debug(uint n);
     // TODO implement TopUpMePlz
 
     // STATUS
     uint128 public stakeSize;
+    uint256 quotationToReveal;
+    uint256 currentQuotationHash;
+    uint256 currentQuotationTime;
 
     // AUTH DATA
     address public notElector;
@@ -28,6 +32,9 @@ contract NotValidator is Depoolable, INotValidator {
     uint128 constant SIGN_UP_COST = 0.6 ton;
     uint128 constant SET_QUOTATION_COST = 0.6 ton;
     uint128 constant REVEAL_QUOTATION_COST = 0.6 ton;
+
+    // OTHER CONSTANTS
+    uint constant QUOTATION_LIFETIME = 5;
 
     // METHODS
     constructor(
@@ -61,28 +68,41 @@ contract NotValidator is Depoolable, INotValidator {
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
+        currentQuotationHash = hashedQuotation;
+        currentQuotationTime = now;
         INotElector(notElector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
     }
 
-    function requestRevealing(uint256 hashedQuotation) override external SenderIsNotElector {
+    function requestRevealing() override external SenderIsNotElector {
         tvm.accept();
-        emit RevealPlz(hashedQuotation);
+        quotationToReveal = currentQuotationHash;
+        emit v_debug(0);
+        if (now <= currentQuotationTime + QUOTATION_LIFETIME) {
+            emit RevealPlz(quotationToReveal);
+        } else {
+            INotElector(notElector).quotationIsTooOld{value: REVEAL_QUOTATION_COST}();
+        }
     }
 
-    function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) override external CheckMsgPubkey {
+    function revealQuotation(uint128 oneUSDCost, uint256 salt) override external CheckMsgPubkey {
+        TvmBuilder builder;
+        builder.store(oneUSDCost, salt);
+        require(tvm.hash(builder.toCell()) == quotationToReveal, Errors.INCORRECT_REVEAL_DATA);
         tvm.accept();
-
-        INotElector(notElector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost, salt);
+        emit v_debug(1);
+        INotElector(notElector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost);
     }
 
     function slash() override external SenderIsNotElector {
         tvm.accept();
+        // TODO transfer stake
         selfdestruct(notElector);
     }
 
     // AFTER VALIDATION PHASE
     function cleanUp(address destination) override external CheckMsgPubkey AfterValidation {
         tvm.accept();
+        // TODO transfer stake
         selfdestruct(destination);
     }
 
@@ -95,6 +115,7 @@ contract NotValidator is Depoolable, INotValidator {
     modifier SenderIsNotElector() {
         require(msg.sender == notElector, Errors.WRONG_SENDER);
         _;
+        msg.sender.transfer({value: 0 ton, flag: 64});
     }
 
     modifier AfterValidation() {
