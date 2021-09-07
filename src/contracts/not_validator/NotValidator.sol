@@ -13,7 +13,6 @@ contract NotValidator is Depoolable, INotValidator {
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
     event v_debug(uint n);
-    // TODO implement TopUpMePlz
 
     // STATUS
     uint128 public stakeSize;
@@ -69,8 +68,12 @@ contract NotValidator is Depoolable, INotValidator {
     function setQuotation(uint256 hashedQuotation) override external CheckMsgPubkey {
         tvm.accept();
         currentQuotationHash = hashedQuotation;
-        currentQuotationTime = now;
-        INotElector(notElector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
+
+        // simple spam reduction
+        if (currentQuotationTime != now) {
+            currentQuotationTime = now;
+            INotElector(notElector).setQuotation{value: SET_QUOTATION_COST}(hashedQuotation);
+        }
     }
 
     function requestRevealing() override external SenderIsNotElector {
