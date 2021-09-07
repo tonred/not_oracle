@@ -11,12 +11,34 @@ from contracts import NotValidatorContract, NotElectorContract
 CONFIG_PATH = './off-chain/config.json'
 
 
+class LoggingNotElector(NotElectorContract):
+    async def _process_event(self, event):
+        if event.name in ('oneUSDCostCalculatedEvent', 'oneUSDCostCalculationStarted'):
+            event.value['time'] = int(event.value['time'], 16)
+        print({
+            'name': event.name,
+            'value': event.value
+        })
+        await super()._process_event(event)
+
+
+class LoggingNotValidator(NotValidatorContract):
+    async def _process_event(self, event):
+        # if event.name in ('oneUSDCostCalculatedEvent', 'oneUSDCostCalculationStarted'):
+        #     event.value['time'] = int(event.value['time'], 16)
+        # print({
+        #     'name': event.name,
+        #     'value': event.value
+        # })
+        await super()._process_event(event)
+
+
 with open(CONFIG_PATH) as f:
     config = json.load(f)
 
 
 async def main_loop():
-    v_contract = NotValidatorContract()
+    v_contract = LoggingNotValidator()
     await v_contract.create(
         base_dir='./artifacts',
         name='NotValidator',
@@ -27,7 +49,7 @@ async def main_loop():
         )
     )
 
-    e_contract = NotElectorContract()
+    e_contract = LoggingNotElector()
     await e_contract.create(
         base_dir='./artifacts',
         name='NotElector',

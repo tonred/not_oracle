@@ -14,7 +14,8 @@ interface INotElector {
 
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) external;
-    function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
+    function revealQuotation(uint128 oneUSDCost) external;
+    function quotationIsTooOld() external;
 
     // has to be called by contract itself on last revealQuotation call
     // function calcFinalQuotation() external;
@@ -29,8 +30,8 @@ interface INotValidator {
 
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) external;
-    function requestRevealing(uint256 hashedQuotation) external;
-    function revealQuotation(uint128 oneUSDCost, uint256 salt, uint256 hashedQuotation) external;
+    function requestRevealing() external;
+    function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
     function slash() external;
 
     // AFTER VALIDATION PHASE

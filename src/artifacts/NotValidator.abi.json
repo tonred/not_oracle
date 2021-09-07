@@ -33,7 +33,6 @@
 		{
 			"name": "requestRevealing",
 			"inputs": [
-				{"name":"hashedQuotation","type":"uint256"}
 			],
 			"outputs": [
 			]
@@ -42,8 +41,7 @@
 			"name": "revealQuotation",
 			"inputs": [
 				{"name":"oneUSDCost","type":"uint128"},
-				{"name":"salt","type":"uint256"},
-				{"name":"hashedQuotation","type":"uint256"}
+				{"name":"salt","type":"uint256"}
 			],
 			"outputs": [
 			]
@@ -193,6 +191,14 @@
 			],
 			"outputs": [
 			]
+		},
+		{
+			"name": "v_debug",
+			"inputs": [
+				{"name":"n","type":"uint256"}
+			],
+			"outputs": [
+			]
 		}
 	],
 	"fields": [
@@ -208,6 +214,9 @@
 		{"name":"depooledParticipant","type":"address"},
 		{"name":"owner","type":"address"},
 		{"name":"stakeSize","type":"uint128"},
+		{"name":"quotationToReveal","type":"uint256"},
+		{"name":"currentQuotationHash","type":"uint256"},
+		{"name":"currentQuotationTime","type":"uint256"},
 		{"name":"notElector","type":"address"},
 		{"name":"validationStartTime","type":"uint256"},
 		{"name":"validationDuration","type":"uint256"}

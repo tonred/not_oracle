@@ -11,4 +11,6 @@ library Errors {
     uint8 constant NOT_REVEALING_MODE              = 107;
     uint8 constant NOTHING_TO_REVEAL               = 108;
     uint8 constant INCORRECT_REVEAL_DATA           = 109;
+    uint8 constant QUOTATION_OUTDATED              = 110;
+    uint8 constant ALREADY_REVEALED                = 111;
 }

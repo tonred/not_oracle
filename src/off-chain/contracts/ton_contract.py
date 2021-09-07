@@ -120,7 +120,7 @@ class BasicContract(ABC):
                 params=process_params,
                 callback=callback,
             )).decoded.output
-        except TonException:
+        except TonException as ex:
             if retries != 0:
                 return await self._call_method(
                     method,
@@ -128,6 +128,8 @@ class BasicContract(ABC):
                     callback,
                     retries-1,
                 )
+            else:
+                raise ex
 
     async def get(self, name: str):
         raise NotImplementedError
