@@ -24,12 +24,12 @@ class LoggingNotElector(NotElectorContract):
 
 class LoggingNotValidator(NotValidatorContract):
     async def _process_event(self, event):
-        # if event.name in ('oneUSDCostCalculatedEvent', 'oneUSDCostCalculationStarted'):
-        #     event.value['time'] = int(event.value['time'], 16)
-        # print({
-        #     'name': event.name,
-        #     'value': event.value
-        # })
+        if event.name in ('oneUSDCostCalculatedEvent', 'oneUSDCostCalculationStarted'):
+            event.value['time'] = int(event.value['time'], 16)
+        print({
+            'name': event.name,
+            'value': event.value
+        })
         await super()._process_event(event)
 
 

@@ -53,7 +53,6 @@ class NotValidatorContract(BasicContract):
 
     async def _process_event(self, event: DecodedMessageBody):
         # TODO implement and process topUpMePlz events
-        # print(' NotValidator:')
         await super()._process_event(event)
         if event.name == 'RevealPlz':
             hashed = event.value['hashedQuotation']
@@ -68,7 +67,6 @@ class NotValidatorContract(BasicContract):
         salt: str,
         hashed_quotation: str,
     ) -> None:
-        # print(f' Python:\n  hashed_quotation = {hashed_quotation}')
         await self._call_method(
             method='revealQuotation',
             args={
