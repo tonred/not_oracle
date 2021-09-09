@@ -13,4 +13,6 @@ library Errors {
     uint8 constant INCORRECT_REVEAL_DATA           = 109;
     uint8 constant QUOTATION_OUTDATED              = 110;
     uint8 constant ALREADY_REVEALED                = 111;
+    uint8 constant NOT_ELECTED                     = 112;
+    uint8 constant SLASHED                         = 113;
 }

@@ -10,7 +10,8 @@
 				{"name":"validationStartTimeArg","type":"uint256"},
 				{"name":"validationDurationArg","type":"uint256"},
 				{"name":"depoolsArg","type":"map(address,bool)"},
-				{"name":"ownerArg","type":"address"}
+				{"name":"ownerArg","type":"address"},
+				{"name":"depooledParticipantIfSlashedArg","type":"address"}
 			],
 			"outputs": [
 			]
@@ -18,6 +19,14 @@
 		{
 			"name": "signUp",
 			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setIsElected",
+			"inputs": [
+				{"name":"result","type":"bool"}
 			],
 			"outputs": [
 			]
@@ -49,14 +58,6 @@
 		{
 			"name": "slash",
 			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "cleanUp",
-			"inputs": [
-				{"name":"destination","type":"address"}
 			],
 			"outputs": [
 			]
@@ -193,9 +194,16 @@
 			]
 		},
 		{
-			"name": "v_debug",
+			"name": "elected",
 			"inputs": [
-				{"name":"n","type":"uint256"}
+				{"name":"result","type":"bool"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "slashed",
+			"inputs": [
 			],
 			"outputs": [
 			]
@@ -217,8 +225,11 @@
 		{"name":"quotationToReveal","type":"uint256"},
 		{"name":"currentQuotationHash","type":"uint256"},
 		{"name":"currentQuotationTime","type":"uint256"},
+		{"name":"isElected","type":"bool"},
+		{"name":"isSlashed","type":"bool"},
 		{"name":"notElector","type":"address"},
 		{"name":"validationStartTime","type":"uint256"},
-		{"name":"validationDuration","type":"uint256"}
+		{"name":"validationDuration","type":"uint256"},
+		{"name":"depooledParticipantIfSlashed","type":"address"}
 	]
 }

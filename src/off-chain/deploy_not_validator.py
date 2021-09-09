@@ -4,8 +4,7 @@ import os
 
 from tonclient.types import KeyPair
 
-from utils import send_tons_with_se_giver,\
-    send_tons_with_multisig, client
+from utils import send_tons_with_multisig, client
 from contracts import NotValidatorContract, NotElectorContract, DePoolMockContract
 
 
@@ -64,7 +63,7 @@ async def main():
         validation_start_time=str(config['not_elector']['validation_start_time']),
         validation_duration=str(config['not_elector']['validation_duration']),
         depools={config['depool']['address']: True},
-        owner='0:' + '0'*64,
+        owner=config['multisig']['address'],
         # TODO top_up settings
     )
 

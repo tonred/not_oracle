@@ -103,6 +103,9 @@ contract NotElector is INotElector {
             if (stakeSize >= MIN_STAKE_SIZE) {
                 notValidatorsRank[notValidator] = 0;
                 notValidatorsRankSize += 1;
+                INotValidator(notValidator).setIsElected(true);
+            } else {
+                INotValidator(notValidator).setIsElected(false);
             }
         }
 

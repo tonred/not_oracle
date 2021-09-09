@@ -15,6 +15,8 @@ class NotValidatorContract(BasicContract):
             {},
         )
         self._hashed_predictions: dict[str, Tuple[int, str]] = {}
+        self.is_elected = False
+        self.is_slashed = False
 
     async def create(
         self,
@@ -33,6 +35,7 @@ class NotValidatorContract(BasicContract):
             'validationDurationArg': '3',
             'depoolsArg': {},
             'ownerArg': '0:' + '0'*64,
+            'depooledParticipantIfSlashedArg': '0:' + '0'*64,
         })
 
     async def deploy(
@@ -42,6 +45,7 @@ class NotValidatorContract(BasicContract):
         validation_duration,
         depools,
         owner,
+        depooled_participant_if_slashed='0:' + '0'*64,
     ) -> None:
         await super().deploy(args={
             'notElectorArg': not_elector_address,
@@ -49,6 +53,7 @@ class NotValidatorContract(BasicContract):
             'validationDurationArg': validation_duration,
             'depoolsArg': depools,
             'ownerArg': owner,
+            'depooledParticipantIfSlashedArg': depooled_participant_if_slashed,
         })
 
     async def _process_event(self, event: DecodedMessageBody):
@@ -59,13 +64,16 @@ class NotValidatorContract(BasicContract):
             hash_key = str(int(hashed, 16))
             if hash_key in self._hashed_predictions:
                 one_usd_cost, salt = self._hashed_predictions[hash_key]
-                await self.reveal_quotation(one_usd_cost, salt, hash_key)
+                await self.reveal_quotation(one_usd_cost, salt)
+        elif event.name == 'elected':
+            self.is_elected = event.value['result']
+        elif event.name == 'slashed':
+            self.is_slashed = True
 
     async def reveal_quotation(
         self,
         one_usd_cost: int,
         salt: str,
-        hashed_quotation: str,
     ) -> None:
         await self._call_method(
             method='revealQuotation',
@@ -95,5 +103,5 @@ class NotValidatorContract(BasicContract):
     async def sign_up(self):
         await self._call_method('signUp')
 
-    async def clean_up(self, destination):
-        await self._call_method('cleanUp', {'destination': destination})
+    async def clean_up(self):
+        await self._call_method('cleanUp', {})

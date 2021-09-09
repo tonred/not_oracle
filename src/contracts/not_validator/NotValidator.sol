@@ -12,13 +12,16 @@ contract NotValidator is Depoolable, INotValidator {
 
     // EVENTS
     event RevealPlz(uint256 hashedQuotation);
-    event v_debug(uint n);
+    event elected(bool result);
+    event slashed();
 
     // STATUS
     uint128 public stakeSize;
     uint256 quotationToReveal;
     uint256 currentQuotationHash;
     uint256 currentQuotationTime;
+    bool isElected;
+    bool isSlashed;
 
     // AUTH DATA
     address public notElector;
@@ -26,6 +29,7 @@ contract NotValidator is Depoolable, INotValidator {
     // ELECTION CYCLE PARAMS
     uint public validationStartTime;
     uint public validationDuration;
+    address depooledParticipantIfSlashed;
 
     // COSTS
     uint128 constant SIGN_UP_COST = 0.6 ton;
@@ -41,7 +45,8 @@ contract NotValidator is Depoolable, INotValidator {
         uint validationStartTimeArg,
         uint validationDurationArg,
         mapping (address => bool) depoolsArg,
-        address ownerArg
+        address ownerArg,
+        address depooledParticipantIfSlashedArg
     ) public {
         require(tvm.pubkey() != 0, Errors.NO_PUB_KEY);
         require(tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUB_KEY);
@@ -50,6 +55,7 @@ contract NotValidator is Depoolable, INotValidator {
         notElector = notElectorArg;
         validationStartTime = validationStartTimeArg;
         validationDuration = validationDurationArg;
+        depooledParticipantIfSlashed = depooledParticipantIfSlashedArg;
         init(depoolsArg, ownerArg);
     }
 
@@ -64,8 +70,17 @@ contract NotValidator is Depoolable, INotValidator {
         );
     }
 
+    function setIsElected(bool result) override external SenderIsNotElector {
+        tvm.accept();
+
+        isElected = result;
+        emit elected(isElected);
+    }
+
     // VALIDATION PHASE
-    function setQuotation(uint256 hashedQuotation) override external CheckMsgPubkey {
+    function setQuotation(
+        uint256 hashedQuotation
+    ) override external CheckMsgPubkey Elected NotSlashed {
         tvm.accept();
         currentQuotationHash = hashedQuotation;
 
@@ -79,7 +94,6 @@ contract NotValidator is Depoolable, INotValidator {
     function requestRevealing() override external SenderIsNotElector {
         tvm.accept();
         quotationToReveal = currentQuotationHash;
-        emit v_debug(0);
         if (now <= currentQuotationTime + QUOTATION_LIFETIME) {
             emit RevealPlz(quotationToReveal);
         } else {
@@ -87,29 +101,35 @@ contract NotValidator is Depoolable, INotValidator {
         }
     }
 
-    function revealQuotation(uint128 oneUSDCost, uint256 salt) override external CheckMsgPubkey {
+    function revealQuotation(
+        uint128 oneUSDCost, uint256 salt
+    ) override external CheckMsgPubkey Elected NotSlashed {
         TvmBuilder builder;
         builder.store(oneUSDCost, salt);
         require(tvm.hash(builder.toCell()) == quotationToReveal, Errors.INCORRECT_REVEAL_DATA);
         tvm.accept();
-        emit v_debug(1);
         INotElector(notElector).revealQuotation{value: REVEAL_QUOTATION_COST}(oneUSDCost);
     }
 
     function slash() override external SenderIsNotElector {
         tvm.accept();
-        // TODO transfer stake
-        selfdestruct(notElector);
-    }
 
-    // AFTER VALIDATION PHASE
-    function cleanUp(address destination) override external CheckMsgPubkey AfterValidation {
-        tvm.accept();
-        // TODO transfer stake
-        selfdestruct(destination);
+        isSlashed = true;
+        owner = notElector;
+        depooledParticipant = depooledParticipantIfSlashed;
     }
 
     // MODIFIERS
+    modifier Elected() {
+        require(isElected, Errors.NOT_ELECTED);
+        _;
+    }
+
+    modifier NotSlashed() {
+        require(!isSlashed, Errors.SLASHED);
+        _;
+    }
+
     modifier CheckMsgPubkey() {
         require(msg.pubkey() == tvm.pubkey(), Errors.WRONG_PUB_KEY);
         _;

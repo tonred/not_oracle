@@ -52,7 +52,7 @@ async def main_loop():
         validation_start_time=str(config['not_elector']['validation_start_time']),
         validation_duration=str(config['not_elector']['validation_duration']),
         depools={config['depool']['address']: True},
-        owner='0:' + '0'*64,
+        owner=config['multisig']['address'],
         # TODO top_up settings
     )
 
@@ -65,8 +65,7 @@ async def main_loop():
 
     # sign-up
     await v_contract.sign_up()
-    # assert time.time() < config['not_elector']['sign_up_start_time'] + \
-    #     config['not_elector']['sign_up_duration']
+    await asyncio.sleep(1)
 
     validation_start_time = config['not_elector']['validation_start_time']
     for _, quotation in enumerate(test['quotations']):
@@ -80,12 +79,11 @@ async def main_loop():
             quotation['reveal'],
         ))
         asyncio.create_task(v_contract.process_events())
-
+        if v_contract.is_slashed:
+            break
     if time.time() < config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']:
         await asyncio.sleep((config['not_elector']['validation_start_time'] + config['not_elector']['validation_duration']) - time.time() + 1)
 
-    await asyncio.sleep(10)
-    await v_contract.clean_up(config['multisig']['address'])
 
 if __name__ == '__main__':
     asyncio.run(main_loop())
