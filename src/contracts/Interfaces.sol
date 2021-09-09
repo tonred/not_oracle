@@ -27,15 +27,13 @@ interface INotElector {
 interface INotValidator {
     // ELECTION PHASE
     function signUp() external;
+    function setIsElected(bool result) external;
 
     // VALIDATION PHASE
     function setQuotation(uint256 hashedQuotation) external;
     function requestRevealing() external;
     function revealQuotation(uint128 oneUSDCost, uint256 salt) external;
     function slash() external;
-
-    // AFTER VALIDATION PHASE
-    function cleanUp(address destination) external;
 }
 
 interface IDePool {

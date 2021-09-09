@@ -65,11 +65,10 @@ async def main_loop():
             timeout=1
         )
         delta = time.time() - start_time
+        if v_contract.is_slashed:
+            break
         if not pending:
             await asyncio.sleep(1 - delta)
-
-    await asyncio.sleep(15)
-    await v_contract.clean_up(config['multisig']['address'])
 
 
 if __name__ == '__main__':

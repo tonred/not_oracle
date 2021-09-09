@@ -92,7 +92,6 @@ async def main_loop():
 
     await asyncio.sleep(15)
     await e_contract.clean_up(config['multisig']['address'])
-    await v_contract.clean_up(config['multisig']['address'])
 
 
 if __name__ == '__main__':

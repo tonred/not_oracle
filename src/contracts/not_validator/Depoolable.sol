@@ -51,21 +51,10 @@ abstract contract Depoolable is IDepoolable {
         bool reinvest,
         uint8 reason
     ) override external {
-        require(depools.exists(msg.sender), ERROR_DEPOOL_NOT_REGISTERED);
+        require(msg.sender == activeDepool, ERROR_DEPOOL_NOT_ACTIVE);
         tvm.accept();
 
-        if (terminationStarted){
-            delete depools[msg.sender];
-            if (depools.empty()) {
-                selfdestruct(owner);
-            }
-        }
-        else if (ended && msg.sender == activeDepool) {
-            uint128 realAmountToSend = math.min(msg.value, amountToSendExternally);
-            if (realAmountToSend > 0) {
-                owner.transfer(realAmountToSend, false, 1);
-            }
-            IDePool(msg.sender).transferStake(depooledParticipant, ordinaryStake);
-        }
+        IDePool(msg.sender).transferStake(depooledParticipant, ordinaryStake);
+        selfdestruct(owner);
     }
 }
