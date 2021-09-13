@@ -306,14 +306,6 @@ contract NotElector is INotElector {
                 s.push(Boundaries(l, i));
             }
         }
-
-        uint128 prev;
-        for (i = 0; i < res.length; i++) {
-            if (res[uint(i)].value < prev) {
-                emit oops(res);
-            }
-            prev = res[i].value;
-        }
     }
 
     // MODIFIERS
