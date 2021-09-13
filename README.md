@@ -22,7 +22,7 @@ bash launch.sh
 
 ### Requirements
 1. `tonos-SE >= 0.28` (if you want to launch it locally)
-2. `TON-Solidity-Compiler >= 0.45.0` (We use it as `$tondev sol compile` in `compile_all.sh`, any other path to compiler's binary can be specified there). Repository also contains all necessery binaries in `src/artifacts`.
+2. `TON-Solidity-Compiler >= 0.45.0` (We use it as `$tondev sol compile` in `compile_all.sh`, any other path to compiler's binary can be specified there). Repository also contains all necessery compiled contracts and keys for SE givers in `src/artifacts`.
 3. `python >= 3.9`
 4. python packages mentioned in `requirements.txt`
 
