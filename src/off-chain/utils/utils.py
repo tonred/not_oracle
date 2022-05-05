@@ -29,7 +29,7 @@ client = TonClient(
 async def get_quotation(contract: NotValidatorContract):
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            'https://cex.io/api/convert/TON/USD',
+            'https://cex.io/api/convert/EVER/USD',
             data={"amnt": 1},
         ) as resp:
             text = await resp.text()

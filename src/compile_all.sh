@@ -3,9 +3,9 @@ mkdir artifacts
 set -e
 
 cd contracts/not_elector
-everdev sol compile NotElector.sol
-mv NotElector.tvc ../../artifacts/
-mv NotElector.abi.json ../../artifacts/
+#everdev sol compile NotElector.sol
+#mv NotElector.tvc ../../artifacts/
+#mv NotElector.abi.json ../../artifacts/
 
 cd ../not_validator
 everdev sol compile NotValidator.sol

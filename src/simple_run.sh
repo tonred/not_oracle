@@ -14,5 +14,7 @@ python off-chain/deploy_not_elector.py
 echo "Deploy not_validator"
 python off-chain/deploy_not_validator.py
 
+./before_validation.sh
+
 echo "Run validation"
 python off-chain/run_not_validation_demo.py
