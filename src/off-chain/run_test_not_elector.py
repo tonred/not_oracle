@@ -37,8 +37,8 @@ async def main():
     e_contract = LoggingNotElector()
 
     await e_contract.create(
-        base_dir='./artifacts',
-        name='NotElector',
+        base_dir=os.getenv('NOT_ELECTOR_PATH'),
+        name=os.getenv('NOT_ELECTOR_NAME'),
         client=client,
         keypair=KeyPair(
             public=config['not_elector']['public_key'],

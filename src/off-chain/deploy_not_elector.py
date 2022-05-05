@@ -18,8 +18,8 @@ async def main():
 
     # init NotElector object
     await e_contract.create(
-        base_dir='./artifacts',
-        name='NotElector',
+        base_dir=os.getenv('NOT_ELECTOR_PATH'),
+        name=os.getenv('NOT_ELECTOR_NAME'),
         client=client,
     )
 

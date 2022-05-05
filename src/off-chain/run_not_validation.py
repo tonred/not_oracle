@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import time
 
 from tonclient.types import KeyPair
@@ -29,8 +30,8 @@ async def main_loop():
 
     e_contract = NotElectorContract()
     await e_contract.create(
-        base_dir='./artifacts',
-        name='NotElector',
+        base_dir=os.getenv('NOT_ELECTOR_PATH'),
+        name=os.getenv('NOT_ELECTOR_NAME'),
         client=client,
         keypair=KeyPair(
             public=config['not_elector']['public_key'],

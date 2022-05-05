@@ -7,7 +7,7 @@ pragma AbiHeader pubkey;
 import "../Interfaces.sol";
 import "../libraries/Errors.sol";
 
-contract NotElector is INotElector {
+abstract contract NotElector is INotElector {
 
     // EVENTS
     event electionIsOverEvent();
@@ -56,6 +56,7 @@ contract NotElector is INotElector {
     uint128 constant MIN_STAKE_SIZE = 10 kiloton; // КОСТЫЛЬ!
 
     // OTHER CONSTANTS
+    uint constant REVEAL_MIN_INTERVAL = 7 days;  // added
     uint constant REVEAL_FREQUENCY_FACTOR = 2;
     uint constant REVEALING_MODE_DURATION = 5;
     uint constant NUMBER_OF_CHECKS_BEFORE_BAN = 3;
@@ -103,9 +104,9 @@ contract NotElector is INotElector {
             if (stakeSize >= MIN_STAKE_SIZE) {
                 notValidatorsRank[notValidator] = 0;
                 notValidatorsRankSize += 1;
-                INotValidator(notValidator).setIsElected(true);
+                INotValidator(notValidator).setIsElected{value: 0.1 ton, flag: 1, bounce: false}(true);  // fixed
             } else {
-                INotValidator(notValidator).setIsElected(false);
+                INotValidator(notValidator).setIsElected{value: 0.1 ton, flag: 1, bounce: false}(false);  // fixed
             }
         }
 
@@ -123,7 +124,12 @@ contract NotElector is INotElector {
         builder.store(random, hashedQuotation);
         random = tvm.hash(builder.toCell());
 
-        if ((now != lastNow) && (status == Status.validation) && ((random % REVEAL_FREQUENCY_FACTOR) == 0)) {
+        // added
+        if ((now != lastNow) &&
+            (status == Status.validation) &&
+            (random % REVEAL_FREQUENCY_FACTOR == 0) &&
+            (now - revealingStartTime > REVEAL_MIN_INTERVAL)
+        ) {
             turnOnRevealingMode();
         }
 
@@ -236,8 +242,11 @@ contract NotElector is INotElector {
         status = Status.validation;
         delete revealedQuotations;
 
+        _afterRevealing(v_50);  // added
         // TODO send necessery data to NOT-Bank
     }
+
+    function _afterRevealing(uint128 quotingPrice) internal virtual;  // added
 
     // AFTER VALIDATION PHASE
     function cleanUp(address destination) override external {
@@ -253,7 +262,7 @@ contract NotElector is INotElector {
         mapping(address => uint256) tempQuotationsToReveal;
         uint256 h;
         for ((address notValidator,) : notValidatorsRank) {
-            INotValidator(notValidator).requestRevealing();
+            INotValidator(notValidator).requestRevealing{value: 0.1 ton, flag: 1, bounce: false}();  // fixed
             revealedQuotations[notValidator] = 0;
         }
 

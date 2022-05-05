@@ -19,8 +19,8 @@ async def main():
     # prepare not_elector and depool
     e_contract = NotElectorContract()
     await e_contract.create(
-        base_dir='./artifacts',
-        name='NotElector',
+        base_dir=os.getenv('NOT_ELECTOR_PATH'),
+        name=os.getenv('NOT_ELECTOR_NAME'),
         client=client,
         keypair=KeyPair(
             public=config['not_elector']['public_key'],
